@@ -1,0 +1,9 @@
+# Smaller build context, faster upload to builders
+node_modules
+.next
+.git
+**/.DS_Store
+*.log
+.env
+.env.*
+!.env.example

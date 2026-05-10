@@ -16,7 +16,9 @@ FROM node:20-bookworm-slim AS builder
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+# Many hosts (incl. Railway) set NODE_ENV=production for install; `npm ci` would then
+# skip devDependencies. Next.js + Tailwind v4 + PostCSS need those at build time.
+RUN npm ci --include=dev
 
 COPY . .
 
