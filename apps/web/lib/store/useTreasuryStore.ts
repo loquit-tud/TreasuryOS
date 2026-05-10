@@ -222,7 +222,7 @@ export const useTreasuryStore = create<TreasuryState>((set, get) => ({
   saveConstitution: async (constitution) => {
     const vault = get().vault;
     if (!vault) {
-      set({ error: "Initialize demo first to bind constitution to a vault." });
+      set({ error: "Activate a vault first to arm the constitution." });
       return;
     }
 

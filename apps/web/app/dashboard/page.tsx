@@ -21,6 +21,7 @@ import {
   ConstitutionalNegotiationFeed,
   type NegotiationLine,
 } from "@/components/constitutional-negotiation-feed";
+import { ConstitutionMoment } from "@/components/constitution-moment";
 import { previewLawImpact } from "@/lib/constitutional-preview";
 import { useTreasuryStore } from "@/lib/store/useTreasuryStore";
 
@@ -56,7 +57,7 @@ export default function DashboardPage() {
     ? "Vault remains compliant under modeled crisis conditions."
     : vault
       ? "Baseline from encoded law — inject shock for a live survivability read."
-      : "No governed vault bound — initialize to begin telemetry.";
+      : "No autonomous vault active — activate to begin telemetry.";
 
   const stressActive = Boolean(simulation && simulation.drawdown_pct > 7);
   const defensivePulse = decision?.decision === "ALLOW";
@@ -65,9 +66,9 @@ export default function DashboardPage() {
   const integrityRows = useMemo(() => {
     if (!vault) {
       return [
-        { ok: false, text: "Liquidity mandate — no vault bound" },
-        { ok: false, text: "Drawdown limits — awaiting constitution" },
-        { ok: false, text: "Leverage policy — unknown" },
+        { ok: false, text: "Liquidity mandate — vault offline" },
+        { ok: false, text: "Drawdown limits — constitution not armed" },
+        { ok: false, text: "Leverage policy — uninitialized" },
       ];
     }
     const c = vault.constitution;
@@ -106,7 +107,7 @@ export default function DashboardPage() {
   const riskEvents = useMemo(() => {
     const rows: string[] = [];
     if (!vault) {
-      rows.push("No active vault — risk plane not instrumented.");
+      rows.push("No active vault — telemetry offline.");
       return rows;
     }
     if (simulation) {
@@ -165,6 +166,8 @@ export default function DashboardPage() {
   }, [vault, proposal, decision, simulation]);
 
   const constitutionActive = Boolean(vault);
+  const verdict = decision?.decision ?? (proposal ? "PENDING" : undefined);
+  const verdictReason = decision?.reasons?.[0] ?? undefined;
 
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-10 md:px-10">
@@ -182,14 +185,14 @@ export default function DashboardPage() {
               className={`h-2 w-2 rounded-full ${constitutionActive ? "bg-emerald-400 constitution-status-pulse" : "bg-slate-600"}`}
               aria-hidden
             />
-            Constitution status: {constitutionActive ? "ACTIVE" : "STANDBY"}
+            Constitution: {constitutionActive ? "ARMED" : "STANDBY"}
           </div>
           <p className="font-mono text-[10px] text-slate-600">
-            {vault ? `${vault.id}` : "No binding"}
+            {vault ? `${vault.id}` : "No vault active"}
           </p>
         </div>
         <Link href="/demo" className="font-mono text-xs text-rose-400/90 underline-offset-4 hover:underline">
-          Run black swan →
+          Black Swan Theatre →
         </Link>
       </header>
 
@@ -244,6 +247,14 @@ export default function DashboardPage() {
         />
       </section>
 
+      <ConstitutionMoment
+        vaultId={vault?.id}
+        proposalId={proposal?.id}
+        verdict={verdict}
+        reason={verdictReason}
+        stressActive={stressActive}
+      />
+
       <section className="panel p-6">
         <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">Active risk events</h2>
         <ul className="mt-4 space-y-2 text-sm text-slate-300">
@@ -273,7 +284,7 @@ export default function DashboardPage() {
             disabled={isLoading}
             className="rounded-md border border-white/[0.1] px-3 py-2 font-mono text-xs text-slate-300 hover:border-cyan-500/40 disabled:opacity-50"
           >
-            Bind demo vault
+            Activate constitutional vault
           </button>
           <button
             type="button"
@@ -281,7 +292,7 @@ export default function DashboardPage() {
             disabled={isLoading || !vault}
             className="rounded-md border border-white/[0.1] px-3 py-2 font-mono text-xs text-slate-300 hover:border-cyan-500/40 disabled:opacity-50"
           >
-            Compliant proposal
+            Draft compliant intent
           </button>
           <button
             type="button"
@@ -289,7 +300,7 @@ export default function DashboardPage() {
             disabled={isLoading || !proposal}
             className="rounded-md border border-white/[0.1] px-3 py-2 font-mono text-xs text-slate-300 hover:border-cyan-500/40 disabled:opacity-50"
           >
-            Evaluate
+            Invoke constitution
           </button>
           <button
             type="button"
@@ -297,7 +308,7 @@ export default function DashboardPage() {
             disabled={isLoading || !proposal}
             className="rounded-md border border-rose-500/20 px-3 py-2 font-mono text-xs text-rose-200/90 hover:border-rose-500/50 disabled:opacity-50"
           >
-            Inject shock
+            Simulate systemic shock
           </button>
           <button
             type="button"
@@ -305,7 +316,7 @@ export default function DashboardPage() {
             disabled={isLoading || !proposal || !decision || decision.decision !== "ALLOW"}
             className="rounded-md border border-emerald-500/25 px-3 py-2 font-mono text-xs text-emerald-300/90 hover:border-emerald-500/50 disabled:opacity-50"
           >
-            Log execution
+            Attest action
           </button>
         </div>
         {error ? <p className="mt-3 font-mono text-xs text-rose-400">{error}</p> : null}

@@ -68,7 +68,9 @@ export function ConstitutionalNegotiationFeed({
         ))}
       </AnimatePresence>
       {liveLines.length === 0 ? (
-        <p className="pt-1 text-[10px] uppercase tracking-wider text-slate-600">Synthetic negotiation — bind vault for live feed</p>
+        <p className="pt-1 text-[10px] uppercase tracking-wider text-slate-600">
+          Synthetic negotiation — activate vault for live feed
+        </p>
       ) : null}
     </div>
   );
