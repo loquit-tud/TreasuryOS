@@ -26,20 +26,46 @@ export function HomeLanding() {
           <div className="max-w-xl flex-1">
             <p className="font-mono text-xs uppercase tracking-[0.28em] text-slate-500">TreasuryOS</p>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.06] tracking-tight text-slate-50 md:text-5xl lg:text-6xl">
-              Constitutional infrastructure for autonomous finance.
+              Rules for money that runs itself.
             </h1>
-            <p className="mt-6 text-lg font-medium text-slate-300 md:text-xl">
-              AI wants risk. <span className="text-cyan-400/95">Constitution enforces survival.</span>
+            <p className="mt-6 text-base leading-relaxed text-slate-300 md:text-lg">
+              <span className="font-medium text-slate-200">
+                TreasuryOS connects to a live API:{" "}
+              </span>
+              an autonomous treasury submits <strong className="text-slate-100">capital intents</strong> (what it wants
+              to do). Your <strong className="text-slate-100">vault constitution</strong> (risk limits written in advance)
+              says <strong className="text-cyan-300/95">ALLOW</strong> or <strong className="text-rose-300/95">BLOCK</strong>.
+              Under stress you run a crisis scenario and watch survivability react.
             </p>
+            <p className="mt-6 text-lg font-medium text-slate-300 md:text-xl">
+              AI pushes for return.{" "}
+              <span className="text-cyan-400/95">The constitution decides if the system survives it.</span>
+            </p>
+            <div className="mt-8 rounded-lg border border-white/[0.08] bg-[#050814]/85 px-4 py-4 font-mono text-[11px] leading-relaxed text-slate-400 md:text-xs">
+              <p className="uppercase tracking-[0.2em] text-slate-500">What you do here (≈60s)</p>
+              <ol className="mt-3 list-decimal space-y-2 pl-4 text-slate-300">
+                <li>
+                  Open <span className="text-slate-200">Live mission control</span> — bind a vault, see a risky intent,
+                  invoke the constitution.
+                </li>
+                <li>
+                  Hit <span className="text-rose-200/90">systemic shock</span> — the map and survivability pulse like a real
+                  control room.
+                </li>
+                <li>
+                  Optional: log an attestation on Mantle when the API is configured (otherwise it stays off-chain).
+                </li>
+              </ol>
+            </div>
             <div className="mt-10 flex flex-wrap gap-3">
-              <Link href="/dashboard" className="btn-primary inline-block px-8 py-3.5 text-sm">
-                Enter operating surface
+              <Link href="/dashboard" className="btn-primary inline-block px-8 py-3.5 text-sm font-semibold">
+                Live mission control
               </Link>
               <Link
                 href="/demo"
                 className="inline-flex items-center border border-rose-500/35 bg-rose-950/20 px-6 py-3.5 font-mono text-sm text-rose-200/90 transition hover:border-rose-400/60"
               >
-                Black swan event →
+                Guided crisis run (90s)
               </Link>
             </div>
           </div>
@@ -52,16 +78,16 @@ export function HomeLanding() {
       {/* One-line thesis */}
       <section className="border-y border-white/[0.06] bg-[#070a1a]/90 py-16 text-center">
         <p className="mx-auto max-w-2xl px-6 font-mono text-sm leading-relaxed text-slate-400 md:text-base">
-          Autonomous capital without law becomes systemic risk. TreasuryOS is the governance layer — not another yield
-          dashboard.
+          This is not a trading terminal. It is a <span className="text-slate-200">policy engine + live demo</span>: the
+          same checks a human committee would argue about, encoded and enforced before execution.
         </p>
       </section>
 
       {/* Write law — economic tension */}
       <section className="mx-auto w-full max-w-5xl px-6 py-20 md:px-10">
-        <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-500">Instrument of government</p>
+        <p className="font-mono text-xs uppercase tracking-[0.24em] text-slate-500">Try the law before you ship it</p>
         <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-100 md:text-3xl">
-          Draft mandates. Watch the system fight back.
+          Move the sliders — see how survivability moves with your mandates.
         </h2>
         <div className="mt-10 panel p-6 md:p-10">
           <InteractiveLawPanel value={laws} onChange={setLaws} />
