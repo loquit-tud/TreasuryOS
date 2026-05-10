@@ -1,24 +1,19 @@
-# Build standalone bundle (see next.config.ts output: "standalone")
+# Next standalone output (next.config.ts: output "standalone").
 #
-# Tailwind v4 → @tailwindcss/postcss → lightningcss (native addon).
-#
-# Problem on Alpine (musl): `npm ci` uses package-lock.json from a non-Alpine machine (macOS,
-# Windows, Debian). That lockfile often omits or fails to activate the optional package
-# `lightningcss-linux-x64-musl`, so `next build` crashes with:
-#   Cannot find module '../lightningcss.linux-x64-musl.node'
-#
-# Fix (bookworm): gnu binary. Some hosts (Railway remote builders) still run Node as musl — install both:
-#   lightningcss-linux-x64-gnu + lightningcss-linux-x64-musl
+# Tailwind v4 → @tailwindcss/postcss → lightningcss (native .node).
+# Railway builders often run Node as musl (Alpine-like). A Debian (glibc) builder + manual
+# optional installs still failed to satisfy `require("lightningcss-linux-x64-musl")`.
+# Fix: build stage on Alpine (musl) so optional deps + detect-libc match.
+# Runtime stage stays Debian slim (unchanged).
 
-FROM node:20-bookworm-slim AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 COPY package*.json ./
-# Many hosts (incl. Railway) set NODE_ENV=production for install; `npm ci` would then
-# skip devDependencies. Next.js + Tailwind v4 + PostCSS need those at build time.
 RUN npm ci --include=dev \
-  && npm install --no-save lightningcss-linux-x64-gnu@1.32.0 lightningcss-linux-x64-musl@1.32.0
+  && npm install --no-save lightningcss-linux-x64-musl@1.32.0 \
+  && node -e "require('lightningcss'); console.log('lightningcss ok')"
 
 COPY . .
 
