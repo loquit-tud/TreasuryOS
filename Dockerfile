@@ -1,18 +1,24 @@
-# Repo-root Dockerfile for Railway when Root Directory is unset (builds `apps/web`).
-# Matches apps/web/Dockerfile — split RUN steps for clearer CI failure attribution.
-
+# Railway: repo root + `/Dockerfile` when service Root Directory is unset — builds `apps/web`.
+#
+# See apps/web/Dockerfile for Tailwind v4 / lightningcss / Alpine musl + lockfile notes.
 FROM node:20-alpine AS builder
+ARG LIGHTNINGCSS_VERSION=1.32.0
 
 WORKDIR /app
 
 COPY apps/web/package*.json ./
-RUN npm ci --include=dev \
-  && npm install --no-save lightningcss-linux-x64-gnu@1.32.0 lightningcss-linux-x64-musl@1.32.0
+
+RUN npm ci --include=dev --include=optional \
+  && npm install --no-save \
+    lightningcss-linux-x64-gnu@${LIGHTNINGCSS_VERSION} \
+    lightningcss-linux-x64-musl@${LIGHTNINGCSS_VERSION} \
+  && test -f "node_modules/lightningcss-linux-x64-musl/lightningcss.linux-x64-musl.node" \
+  && echo "lightningcss musl binary present"
 
 COPY apps/web/ .
 
-RUN cp -f node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node node_modules/lightningcss/ \
-  && cp -f node_modules/lightningcss-linux-x64-musl/lightningcss.linux-x64-musl.node node_modules/lightningcss/ \
+RUN cp -f "node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node" node_modules/lightningcss/ \
+  && cp -f "node_modules/lightningcss-linux-x64-musl/lightningcss.linux-x64-musl.node" node_modules/lightningcss/ \
   && node -e "require('lightningcss'); console.log('lightningcss ok')"
 
 RUN node -v && npm -v && uname -a
