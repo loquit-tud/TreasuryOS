@@ -1,0 +1,3 @@
+tailwindcss=v3-postcss-autoprefixer
+no-tailwindcss-v4
+no-lightningcss

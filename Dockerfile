@@ -1,4 +1,7 @@
-# Railway: repo root when service Root Directory unset — builds apps/web.
+# treasuryos-web — build from monorepo root (set Railway Root Directory empty, or use this path explicitly).
+#
+# One COPY + npm ci so node_modules always matches apps/web/package-lock.json (no stale layers).
+# Tailwind v3 only — if you see @tailwindcss/* or lightningcss in the log, the wrong Git ref is being built.
 FROM node:20-bookworm-slim AS builder
 
 WORKDIR /app
@@ -7,14 +10,13 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-COPY apps/web/package*.json ./
-RUN npm ci --include=dev
-
 COPY apps/web/ .
 
-# Fail fast if Railway is building stale Git (must be Tailwind v3 — no LightningCSS).
-RUN node -e "const p=require('./package.json');const v=p.devDependencies?.tailwindcss||'';if(!String(v).includes('3.'))throw new Error('Stale source: expected tailwindcss 3.x, got: '+v);console.log('OK tailwindcss:',v);" \
-  && node -e "try{require.resolve('lightningcss');process.exit(1)}catch(e){console.log('OK: no lightningcss package')}"
+RUN npm ci --include=dev \
+  && node -e "const p=require('./package.json');const v=p.devDependencies?.tailwindcss||'';if(!String(v).includes('3.'))throw new Error('Expected tailwindcss 3.x in package.json, got: '+JSON.stringify(v));" \
+  && if [ -d node_modules/@tailwindcss ]; then echo 'REFUSE_BUILD: Tailwind v4 packages (node_modules/@tailwindcss) — deploy latest main (Tailwind v3).'; exit 1; fi \
+  && if [ -f node_modules/lightningcss/package.json ]; then echo 'REFUSE_BUILD: lightningcss must not be installed (use Tailwind v3).'; exit 1; fi \
+  && echo "OK: Tailwind v3 stack, no v4 postcss pipeline"
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS="--max-old-space-size=8192"
