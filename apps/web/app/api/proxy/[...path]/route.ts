@@ -41,6 +41,10 @@ async function forward(request: NextRequest, params: { path: string[] }) {
   }
 
   const headers = stripHopByHopHeaders(request.headers);
+  const apiKey = process.env.BACKEND_API_KEY?.trim();
+  if (apiKey) {
+    headers.set("x-api-key", apiKey);
+  }
 
   try {
     const response = await fetch(upstreamUrl, {

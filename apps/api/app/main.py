@@ -1,7 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
@@ -13,6 +13,7 @@ from app.routes.simulations import router as simulations_router
 from app.routes.vaults import router as vaults_router
 from app.services.db_bootstrap import ensure_runtime_columns
 from app.services.migrations import run_alembic_upgrade
+from app.security import require_api_key
 
 
 def _bootstrap_schema_sync() -> None:
@@ -53,6 +54,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def api_key_middleware(request: Request, call_next):
+    # Public endpoints.
+    if request.url.path in ("/health", "/docs", "/openapi.json", "/redoc"):
+        return await call_next(request)
+    require_api_key(request)
+    return await call_next(request)
 
 app.include_router(vaults_router)
 app.include_router(proposals_router)

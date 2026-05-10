@@ -41,6 +41,16 @@ class Settings(BaseSettings):
         validation_alias="REDIS_URL",
         description="Redis URL for decision event stream (optional). e.g. redis://localhost:6379/0",
     )
+    api_keys: str | None = Field(
+        default=None,
+        validation_alias="API_KEYS",
+        description="Comma-separated API keys. If set, requests must include X-API-Key. Recommended in production.",
+    )
+    allow_public_api_in_production: bool = Field(
+        default=False,
+        validation_alias="ALLOW_PUBLIC_API_IN_PROD",
+        description="If true, production allows unauthenticated requests even when API_KEYS is unset.",
+    )
 
     @field_validator("database_url", mode="after")
     @classmethod
@@ -67,12 +77,26 @@ class Settings(BaseSettings):
                 "APP_ENV=production requires explicit CORS_ALLOW_ORIGINS "
                 "(comma-separated list, no wildcard)."
             )
+        if self.app_env == "production" and not self.allow_public_api_in_production:
+            keys = (self.api_keys or "").strip()
+            if not keys:
+                raise ValueError(
+                    "APP_ENV=production requires API_KEYS (comma-separated) "
+                    "or explicitly set ALLOW_PUBLIC_API_IN_PROD=true."
+                )
         if self.cors_allow_credentials and "*" in origins:
             raise ValueError(
                 "CORS_ALLOW_CREDENTIALS=true is incompatible with wildcard origins; "
                 "set explicit CORS_ALLOW_ORIGINS."
             )
         return self
+
+    @property
+    def api_key_set(self) -> set[str]:
+        raw = (self.api_keys or "").strip()
+        if not raw:
+            return set()
+        return {part.strip() for part in raw.split(",") if part.strip()}
 
     @property
     def cors_origins_list(self) -> list[str]:
