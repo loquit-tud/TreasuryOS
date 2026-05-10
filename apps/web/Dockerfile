@@ -18,7 +18,8 @@ WORKDIR /app
 COPY package*.json ./
 # Many hosts (incl. Railway) set NODE_ENV=production for install; `npm ci` would then
 # skip devDependencies. Next.js + Tailwind v4 + PostCSS need those at build time.
-RUN npm ci --include=dev
+RUN npm ci --include=dev \
+  && npm install --no-save lightningcss-linux-x64-gnu@1.32.0
 
 COPY . .
 

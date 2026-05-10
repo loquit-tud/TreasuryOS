@@ -8,7 +8,8 @@ FROM node:20-bookworm-slim AS builder
 WORKDIR /app
 
 COPY apps/web/package*.json ./
-RUN npm ci --include=dev
+RUN npm ci --include=dev \
+  && npm install --no-save lightningcss-linux-x64-gnu@1.32.0
 
 COPY apps/web/ .
 
