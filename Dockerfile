@@ -12,6 +12,11 @@ RUN apt-get update \
 
 COPY apps/web/ .
 
+# Fingerprint for Railway logs — if you do not see "tailwindcss": "^3 below, this image is NOT from GitHub main.
+RUN echo "==== TreasuryOS Dockerfile (repo root) fingerprint ====" \
+  && grep -E '"tailwindcss"|"@tailwindcss"' package.json || true \
+  && head -40 package.json
+
 RUN npm ci --include=dev \
   && node -e "const p=require('./package.json');const v=p.devDependencies?.tailwindcss||'';if(!String(v).includes('3.'))throw new Error('Expected tailwindcss 3.x in package.json, got: '+JSON.stringify(v));" \
   && if [ -d node_modules/@tailwindcss ]; then echo 'REFUSE_BUILD: Tailwind v4 packages (node_modules/@tailwindcss) — deploy latest main (Tailwind v3).'; exit 1; fi \

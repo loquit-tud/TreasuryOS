@@ -10,6 +10,10 @@ RUN apt-get update \
 
 COPY . .
 
+RUN echo "==== TreasuryOS apps/web Dockerfile fingerprint ====" \
+  && grep -E '"tailwindcss"|"@tailwindcss"' package.json || true \
+  && head -40 package.json
+
 RUN npm ci --include=dev \
   && node -e "const p=require('./package.json');const v=p.devDependencies?.tailwindcss||'';if(!String(v).includes('3.'))throw new Error('Expected tailwindcss 3.x in package.json, got: '+JSON.stringify(v));" \
   && if [ -d node_modules/@tailwindcss ]; then echo 'REFUSE_BUILD: Tailwind v4 (node_modules/@tailwindcss) — wrong branch or stale repo.'; exit 1; fi \
