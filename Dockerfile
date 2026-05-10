@@ -12,6 +12,10 @@ RUN npm ci --include=dev
 
 COPY apps/web/ .
 
+# Fail fast if Railway is building stale Git (must be Tailwind v3 — no LightningCSS).
+RUN node -e "const p=require('./package.json');const v=p.devDependencies?.tailwindcss||'';if(!String(v).includes('3.'))throw new Error('Stale source: expected tailwindcss 3.x, got: '+v);console.log('OK tailwindcss:',v);" \
+  && node -e "try{require.resolve('lightningcss');process.exit(1)}catch(e){console.log('OK: no lightningcss package')}"
+
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS="--max-old-space-size=8192"
 
