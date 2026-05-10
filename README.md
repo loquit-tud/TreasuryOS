@@ -65,6 +65,24 @@ python -m pytest tests/ -v
 
 **CI:** on push/PR to `main`/`master`, GitHub Actions runs the same tests (`.github/workflows/ci.yml`).
 
+## Self-host (Docker)
+
+```bash
+cd infra
+docker compose -f compose.full.yml up --build
+```
+
+See `SELF_HOST.md` for details.
+
+## Production checklist (minimum)
+
+- **Auth**: set `API_KEYS` on the API service and `BACKEND_API_KEY` on the web service.
+- **CORS**: `APP_ENV=production` requires explicit `CORS_ALLOW_ORIGINS` (no wildcard).
+- **Migrations**: API runs `alembic upgrade head` on startup; ensure DB is reachable during deploy.
+- **Observability**: use `X-Request-Id` to trace a single request through Railway logs (JSON per request).
+- **Evidence**: `GET /evidence/proposal/{proposal_id}` returns an audit pack (vault, proposal, ledger, constitution versions).
+- **On-chain verification**: `GET /monitoring/onchain/execution-log/{tx_hash}` decodes `ExecutionLog` events (read-only).
+
 ## API quick checks
 
 Swagger docs:

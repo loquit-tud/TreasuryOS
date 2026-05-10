@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: treasuryos
+    ports:
+      - "5432:5432"
+    volumes:
+      - treasuryos_pg_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile
+    environment:
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/treasuryos
+      REDIS_URL: redis://redis:6379/0
+      CORS_ALLOW_ORIGINS: http://localhost:3000
+      API_KEYS: local-dev-key
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+
+  web:
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      BACKEND_API_URL: http://api:8000
+      BACKEND_API_KEY: local-dev-key
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  treasuryos_pg_data:
+
