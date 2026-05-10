@@ -1,6 +1,8 @@
 import asyncio
 from contextlib import asynccontextmanager
 
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,6 +15,7 @@ from app.routes.simulations import router as simulations_router
 from app.routes.vaults import router as vaults_router
 from app.services.db_bootstrap import ensure_runtime_columns
 from app.services.migrations import run_alembic_upgrade
+from app.observability import elapsed_ms, get_or_create_request_id, log_request, start_timer
 from app.security import require_api_key
 
 
@@ -40,6 +43,8 @@ async def lifespan(app: FastAPI):
 
 settings = get_settings()
 
+logging.basicConfig(level=logging.INFO)
+
 app = FastAPI(
     title="TreasuryOS API",
     version="0.1.0",
@@ -54,6 +59,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def request_id_and_logging_middleware(request: Request, call_next):
+    rid = get_or_create_request_id(request)
+    t0 = start_timer()
+    response = await call_next(request)
+    response.headers["X-Request-Id"] = rid
+    await log_request(request, response, elapsed_ms(t0), rid)
+    return response
 
 @app.middleware("http")
 async def api_key_middleware(request: Request, call_next):
