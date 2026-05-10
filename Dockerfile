@@ -1,7 +1,7 @@
 # Railway builds `treasuryos-web` with repo root + `/Dockerfile` (rootDirectory unset in dashboard).
 # Keep `apps/web/Dockerfile` for local builds from that folder; this file mirrors it using `apps/web/*`.
 #
-# Tailwind v4 / lightningcss: use Debian slim (glibc), not Alpine — see apps/web/Dockerfile.
+# Tailwind v4 → lightningcss natives; Railway may still resolve musl — install gnu + musl (see apps/web/Dockerfile).
 
 FROM node:20-bookworm-slim AS builder
 
@@ -9,7 +9,7 @@ WORKDIR /app
 
 COPY apps/web/package*.json ./
 RUN npm ci --include=dev \
-  && npm install --no-save lightningcss-linux-x64-gnu@1.32.0
+  && npm install --no-save lightningcss-linux-x64-gnu@1.32.0 lightningcss-linux-x64-musl@1.32.0
 
 COPY apps/web/ .
 

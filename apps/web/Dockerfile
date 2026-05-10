@@ -7,9 +7,8 @@
 # `lightningcss-linux-x64-musl`, so `next build` crashes with:
 #   Cannot find module '../lightningcss.linux-x64-musl.node'
 #
-# Fix: build on Debian slim (glibc). npm then resolves the linux-x64-gnu binary consistently.
-# Alternative (not used here): regenerate lockfile under Alpine CI, or `npm install lightningcss-linux-x64-musl`
-# after `npm ci` on Alpine.
+# Fix (bookworm): gnu binary. Some hosts (Railway remote builders) still run Node as musl — install both:
+#   lightningcss-linux-x64-gnu + lightningcss-linux-x64-musl
 
 FROM node:20-bookworm-slim AS builder
 
@@ -19,7 +18,7 @@ COPY package*.json ./
 # Many hosts (incl. Railway) set NODE_ENV=production for install; `npm ci` would then
 # skip devDependencies. Next.js + Tailwind v4 + PostCSS need those at build time.
 RUN npm ci --include=dev \
-  && npm install --no-save lightningcss-linux-x64-gnu@1.32.0
+  && npm install --no-save lightningcss-linux-x64-gnu@1.32.0 lightningcss-linux-x64-musl@1.32.0
 
 COPY . .
 
