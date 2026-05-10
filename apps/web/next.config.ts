@@ -1,5 +1,13 @@
 import type { NextConfig } from "next";
-import path from "path";
+import { existsSync } from "node:fs";
+import path from "node:path";
+
+const nm = path.join(process.cwd(), "node_modules");
+if (existsSync(path.join(nm, "@tailwindcss"))) {
+  throw new Error(
+    "[TreasuryOS] node_modules/@tailwindcss present (Tailwind v4). Railway is building stale/cached deps or the wrong Git ref. Fix: Settings → Source = github.com/loquit-tud/TreasuryOS branch main; Build → Builder = Dockerfile; Redeploy with clear cache."
+  );
+}
 
 /**
  * Turbopack root fix pentru workspace-uri monorepo/nested — reduce riscul de drop la App Router routes la build.
