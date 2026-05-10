@@ -12,13 +12,10 @@ if (existsSync(path.join(nm, "@tailwindcss"))) {
 /**
  * Turbopack root fix pentru workspace-uri monorepo/nested — reduce riscul de drop la App Router routes la build.
  *
- * Notă: `rewrites()` din next.config este rezolvat la **build time**. Pentru upstream dinamic la runtime
- * (ex. Railway), folosește ruta `app/api/proxy/[...path]` + `BACKEND_API_URL`.
+ * Do **not** add a blanket `rewrites()` from `/api/*` → backend. In Next, rewrites are checked before the
+ * filesystem, so `/api/proxy/...` would be sent to `http://127.0.0.1:8000/proxy/...` (wrong path + wrong
+ * host in Docker/prod). All API traffic goes through `app/api/proxy/[...path]/route.ts` at runtime.
  */
-const apiUrl =
-  process.env.API_URL?.trim() ||
-  process.env.BACKEND_API_URL?.trim() ||
-  "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -81,15 +78,6 @@ const nextConfig: NextConfig = {
             ].join("; "),
           },
         ],
-      },
-    ];
-  },
-
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${apiUrl.replace(/\/$/, "")}/:path*`,
       },
     ];
   },
