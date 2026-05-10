@@ -239,7 +239,7 @@ export function CapitalOrganismFlow({
   }, []);
 
   return (
-    <div className="capital-flow-canvas relative h-[min(420px,55vh)] min-h-[300px] w-full rounded-md border border-white/[0.06] bg-[#050814]">
+    <div className="capital-flow-canvas relative h-[min(560px,62vh)] min-h-[380px] w-full overflow-hidden rounded-xl border border-white/[0.06] bg-[#050814]">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -256,8 +256,14 @@ export function CapitalOrganismFlow({
         proOptions={{ hideAttribution: true }}
         className="!bg-transparent"
       >
-        <Background color="rgba(148,163,184,0.07)" gap={20} size={1} />
+        <Background color="rgba(148,163,184,0.06)" gap={18} size={1} />
         <Controls showInteractive={false} className="!m-2 !border-white/10 !bg-slate-950/90 [&_button]:!border-white/10 [&_button]:!bg-slate-900 [&_svg]:!fill-slate-400" />
+        <Panel position="top-right" className="m-3 rounded-md border border-white/[0.08] bg-slate-950/70 px-3 py-2 font-mono text-[10px] text-slate-400">
+          <div className="flex items-center gap-2">
+            <span className={`h-2 w-2 rounded-full ${stressActive ? "bg-rose-400/90" : "bg-emerald-400/80"}`} />
+            <span>{stressActive ? "SYSTEM UNDER STRESS" : "NOMINAL PRESSURE"}</span>
+          </div>
+        </Panel>
         <Panel position="bottom-left" className="m-2 max-w-[240px] font-mono text-[9px] text-slate-600">
           Flows converge on law — pan/zoom to inspect. Not yield.
         </Panel>

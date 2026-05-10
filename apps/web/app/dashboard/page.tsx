@@ -170,7 +170,11 @@ export default function DashboardPage() {
   const verdictReason = decision?.reasons?.[0] ?? undefined;
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-10 md:px-10">
+    <main
+      className={`mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-10 md:px-10 ${
+        stressActive ? "mission-vignette mission-vignette--stress" : "mission-vignette"
+      }`}
+    >
       {/* Top bar — branding is law, not “dashboard” */}
       <header className="flex flex-col gap-4 border-b border-white/[0.08] pb-6 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap items-center gap-4">
@@ -231,20 +235,22 @@ export default function DashboardPage() {
         </ul>
       </section>
 
-      <section className="panel p-6">
+      <section className="panel overflow-hidden p-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-            Constitutional capital organism
+            Constitutional capital topology
           </h2>
           <Link href="/simulations" className="text-xs text-cyan-500/90 underline-offset-4 hover:underline">
             Stress lab →
           </Link>
         </div>
-        <CapitalOrganismFlow
-          stressActive={stressActive}
-          defensivePulse={defensivePulse}
-          blockPulse={blockPulse}
-        />
+        <div className="mt-4">
+          <CapitalOrganismFlow
+            stressActive={stressActive}
+            defensivePulse={defensivePulse}
+            blockPulse={blockPulse}
+          />
+        </div>
       </section>
 
       <ConstitutionMoment
