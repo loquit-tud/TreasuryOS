@@ -1,10 +1,11 @@
-# Next standalone output (next.config.ts: output "standalone").
+# Next standalone (next.config.ts: output "standalone").
 #
-# Tailwind v4 → @tailwindcss/postcss → lightningcss (native .node).
-# Railway builders often run Node as musl (Alpine-like). A Debian (glibc) builder + manual
-# optional installs still failed to satisfy `require("lightningcss-linux-x64-musl")`.
-# Fix: build stage on Alpine (musl) so optional deps + detect-libc match.
-# Runtime stage stays Debian slim (unchanged).
+# Tailwind v4 → lightningcss loads a native addon. `lightningcss/node/index.js` tries
+# `require("lightningcss-linux-x64-musl")` then falls back to `../lightningcss.linux-x64-musl.node`
+# (file next to lightningcss's package root). Next webpack workers often fail the first require;
+# copying the published .node file into `node_modules/lightningcss/` fixes the fallback.
+#
+# Builder: Alpine (musl) matches Railway's libc for Tailwind/lightningcss.
 
 FROM node:20-alpine AS builder
 
@@ -12,10 +13,13 @@ WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci --include=dev \
-  && npm install --no-save lightningcss-linux-x64-musl@1.32.0 \
-  && node -e "require('lightningcss'); console.log('lightningcss ok')"
+  && npm install --no-save lightningcss-linux-x64-gnu@1.32.0 lightningcss-linux-x64-musl@1.32.0
 
 COPY . .
+
+RUN cp -f node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node node_modules/lightningcss/ \
+  && cp -f node_modules/lightningcss-linux-x64-musl/lightningcss.linux-x64-musl.node node_modules/lightningcss/ \
+  && node -e "require('lightningcss'); console.log('lightningcss ok')"
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS="--max-old-space-size=4096"

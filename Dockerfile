@@ -1,5 +1,5 @@
-# Railway uses repo root + `/Dockerfile` when service Root Directory is unset.
-# Builder = Alpine (musl) so lightningcss matches Tailwind v4 on Railway; runner = Debian slim.
+# Repo-root Dockerfile for Railway (service Root Directory unset).
+# See apps/web/Dockerfile — copy lightningcss native binaries next to `lightningcss` so webpack fallback resolves.
 
 FROM node:20-alpine AS builder
 
@@ -7,10 +7,13 @@ WORKDIR /app
 
 COPY apps/web/package*.json ./
 RUN npm ci --include=dev \
-  && npm install --no-save lightningcss-linux-x64-musl@1.32.0 \
-  && node -e "require('lightningcss'); console.log('lightningcss ok')"
+  && npm install --no-save lightningcss-linux-x64-gnu@1.32.0 lightningcss-linux-x64-musl@1.32.0
 
 COPY apps/web/ .
+
+RUN cp -f node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node node_modules/lightningcss/ \
+  && cp -f node_modules/lightningcss-linux-x64-musl/lightningcss.linux-x64-musl.node node_modules/lightningcss/ \
+  && node -e "require('lightningcss'); console.log('lightningcss ok')"
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS="--max-old-space-size=4096"
