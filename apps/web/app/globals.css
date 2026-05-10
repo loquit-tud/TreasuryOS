@@ -128,6 +128,12 @@ input:focus-visible {
   animation: capital-flow 18s linear infinite;
 }
 
+.capital-flow-edge--stress path {
+  stroke-dasharray: 4 10;
+  animation-duration: 9s;
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.12));
+}
+
 @media (prefers-reduced-motion: reduce) {
   .capital-flow-edge path {
     animation: none;

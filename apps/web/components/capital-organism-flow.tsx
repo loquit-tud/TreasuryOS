@@ -153,7 +153,11 @@ function buildGraph(
     });
   }
 
-  const edgeAnim = reduceMotion ? "" : "capital-flow-edge";
+  const edgeAnim = reduceMotion
+    ? ""
+    : stressActive
+      ? "capital-flow-edge capital-flow-edge--stress"
+      : "capital-flow-edge";
 
   const edges: Edge[] = [
     {

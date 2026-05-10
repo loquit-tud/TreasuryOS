@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 
 /** React Flow touches DOM/window — must not SSR (Docker/Linux builds fail otherwise). */
@@ -42,6 +42,8 @@ export default function DashboardPage() {
     markExecutionLogged,
   } = useTreasuryStore();
 
+  const [shockOverlay, setShockOverlay] = useState(false);
+
   const lawPreview = useMemo(() => {
     if (!vault) return null;
     return previewLawImpact({
@@ -60,6 +62,7 @@ export default function DashboardPage() {
       : "No autonomous vault active — activate to begin telemetry.";
 
   const stressActive = Boolean(simulation && simulation.drawdown_pct > 7);
+  const cinematicStress = stressActive || shockOverlay;
   const defensivePulse = decision?.decision === "ALLOW";
   const blockPulse = decision?.decision === "REJECT";
 
@@ -169,10 +172,19 @@ export default function DashboardPage() {
   const verdict = decision?.decision ?? (proposal ? "PENDING" : undefined);
   const verdictReason = decision?.reasons?.[0] ?? undefined;
 
+  const triggerBlackSwan = async () => {
+    setShockOverlay(true);
+    try {
+      await runBlackSwan();
+    } finally {
+      window.setTimeout(() => setShockOverlay(false), 1200);
+    }
+  };
+
   return (
     <main
       className={`mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-10 md:px-10 ${
-        stressActive ? "mission-vignette mission-vignette--stress" : "mission-vignette"
+        cinematicStress ? "mission-vignette mission-vignette--stress" : "mission-vignette"
       }`}
     >
       {/* Top bar — branding is law, not “dashboard” */}
@@ -220,6 +232,37 @@ export default function DashboardPage() {
         ) : null}
       </section>
 
+      <section className="panel overflow-hidden border-rose-500/20 bg-gradient-to-br from-[#14060b] via-[#070818] to-[#060816] p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-2xl">
+            <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-rose-300/70">
+              Systemic event simulator
+            </p>
+            <h2 className="mt-2 font-mono text-2xl font-semibold tracking-tight text-slate-100">
+              SIMULATE BLACK SWAN
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">
+              Stress the vault under crisis pressure. Watch capital flows distort and the constitution enforce
+              survivability constraints in real time.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void triggerBlackSwan()}
+            disabled={isLoading || !proposal}
+            className="group rounded-lg border border-rose-500/35 bg-rose-950/35 px-5 py-4 font-mono text-sm text-rose-100 shadow-[0_0_0_1px_rgba(239,68,68,0.15)] transition hover:border-rose-400/70 hover:bg-rose-950/45 disabled:opacity-50"
+          >
+            <span className="block text-[10px] uppercase tracking-[0.28em] text-rose-200/70">
+              Trigger systemic shock
+            </span>
+            <span className="mt-1 block text-lg font-semibold tracking-tight">EXECUTE STRESS SCENARIO</span>
+            <span className="mt-2 block text-xs text-rose-200/70">
+              {proposal ? "Uses active intent context." : "Activate vault + create intent first."}
+            </span>
+          </button>
+        </div>
+      </section>
+
       <section className="panel p-6">
         <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">Constitution integrity</h2>
         <ul className="mt-5 space-y-3 font-mono text-sm">
@@ -246,7 +289,7 @@ export default function DashboardPage() {
         </div>
         <div className="mt-4">
           <CapitalOrganismFlow
-            stressActive={stressActive}
+            stressActive={cinematicStress}
             defensivePulse={defensivePulse}
             blockPulse={blockPulse}
           />
@@ -258,7 +301,7 @@ export default function DashboardPage() {
         proposalId={proposal?.id}
         verdict={verdict}
         reason={verdictReason}
-        stressActive={stressActive}
+        stressActive={cinematicStress}
       />
 
       <section className="panel p-6">
