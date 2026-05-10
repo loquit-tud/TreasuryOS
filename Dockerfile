@@ -1,7 +1,4 @@
-# Railway repo root: service uses `/Dockerfile`, builds `apps/web`.
-# Glibc builder (bookworm) — see apps/web/Dockerfile (avoid Alpine/musl + lightningcss).
-ARG LIGHTNINGCSS_VERSION=1.32.0
-
+# Railway: repo root when service Root Directory unset — builds apps/web.
 FROM node:20-bookworm-slim AS builder
 
 WORKDIR /app
@@ -11,15 +8,9 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY apps/web/package*.json ./
-
-RUN npm ci --include=dev --include=optional \
-  && npm install --no-save "lightningcss-linux-x64-gnu@${LIGHTNINGCSS_VERSION}" \
-  && test -f "node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node"
+RUN npm ci --include=dev
 
 COPY apps/web/ .
-
-RUN cp -f "node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node" "node_modules/lightningcss/lightningcss.linux-x64-gnu.node" \
-  && node -e "require('lightningcss'); console.log('lightningcss ok (glibc)')"
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS="--max-old-space-size=8192"
