@@ -1,0 +1,11 @@
+# Reduce Docker build context from monorepo root (Railway / Dockerfile at repo root).
+**/node_modules
+**/.next
+.git
+**/.DS_Store
+*.log
+.env
+.env.*
+!**/.env.example
+apps/web/.env
+apps/web/.env.*
