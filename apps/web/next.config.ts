@@ -17,6 +17,16 @@ const nextConfig: NextConfig = {
     root: path.join(__dirname),
   },
 
+  experimental: {
+    /** Lower peak RSS during webpack (Next 15+). */
+    webpackMemoryOptimizations: true,
+    /**
+     * Webpack runs in the main Node process — avoids jest-worker child processes failing to
+     * resolve lightningcss native addons on some Docker/Railway builders.
+     */
+    webpackBuildWorker: false,
+  },
+
   /** Some hosts mis-report ESLint/Turbopack failures as generic “webpack errors”; keep CI deploy unblockable. */
   eslint: {
     ignoreDuringBuilds: true,

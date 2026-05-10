@@ -1,11 +1,8 @@
 # Next standalone (next.config.ts: output "standalone").
 #
-# Tailwind v4 → lightningcss loads a native addon. `lightningcss/node/index.js` tries
-# `require("lightningcss-linux-x64-musl")` then falls back to `../lightningcss.linux-x64-musl.node`
-# (file next to lightningcss's package root). Next webpack workers often fail the first require;
-# copying the published .node file into `node_modules/lightningcss/` fixes the fallback.
-#
-# Builder: Alpine (musl) matches Railway's libc for Tailwind/lightningcss.
+# Tailwind v4 → lightningcss natives — copy published .node files next to `lightningcss` so fallback
+# path `../lightningcss.*.node` resolves (see lightningcss/node/index.js).
+# Builder: Alpine (musl). See next.config experimental.webpackBuildWorker=false for worker resolution issues.
 
 FROM node:20-alpine AS builder
 
@@ -21,8 +18,13 @@ RUN cp -f node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.nod
   && cp -f node_modules/lightningcss-linux-x64-musl/lightningcss.linux-x64-musl.node node_modules/lightningcss/ \
   && node -e "require('lightningcss'); console.log('lightningcss ok')"
 
+# Split layers so Railway logs show whether failure is before/after native checks.
+RUN node -v && npm -v && uname -a
+
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Main-thread webpack uses more RSS than workers disabled — Railway needs headroom for trace collection.
+ENV NODE_OPTIONS="--max-old-space-size=8192"
+
 RUN npm run build
 
 FROM node:20-bookworm-slim AS runner

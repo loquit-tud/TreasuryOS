@@ -1,5 +1,5 @@
-# Repo-root Dockerfile for Railway (service Root Directory unset).
-# See apps/web/Dockerfile — copy lightningcss native binaries next to `lightningcss` so webpack fallback resolves.
+# Repo-root Dockerfile for Railway when Root Directory is unset (builds `apps/web`).
+# Matches apps/web/Dockerfile — split RUN steps for clearer CI failure attribution.
 
 FROM node:20-alpine AS builder
 
@@ -15,8 +15,11 @@ RUN cp -f node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.nod
   && cp -f node_modules/lightningcss-linux-x64-musl/lightningcss.linux-x64-musl.node node_modules/lightningcss/ \
   && node -e "require('lightningcss'); console.log('lightningcss ok')"
 
+RUN node -v && npm -v && uname -a
+
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NODE_OPTIONS="--max-old-space-size=8192"
+
 RUN npm run build
 
 FROM node:20-bookworm-slim AS runner
