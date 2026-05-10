@@ -84,8 +84,25 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(`API ${response.status}: ${message}`);
+    const raw = await response.text();
+    let detail = raw.trim();
+    try {
+      const parsed = JSON.parse(raw) as { detail?: unknown; error?: string; message?: string };
+      if (parsed.detail != null) {
+        detail =
+          typeof parsed.detail === "string"
+            ? parsed.detail
+            : JSON.stringify(parsed.detail);
+      } else if (parsed.message) {
+        detail = parsed.message;
+      } else if (parsed.error) {
+        detail = parsed.error;
+      }
+    } catch {
+      /* keep raw body */
+    }
+    if (!detail) detail = response.statusText || "Unknown error";
+    throw new Error(`API ${response.status}: ${detail.slice(0, 800)}`);
   }
 
   return response.json() as Promise<T>;
