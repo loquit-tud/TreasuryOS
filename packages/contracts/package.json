@@ -1,0 +1,22 @@
+{
+  "name": "contracts",
+  "version": "1.0.0",
+  "description": "This folder contains the minimal smart contract layer for TreasuryOS:",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy:mantle-sepolia": "hardhat run script/deploy.js --network mantleSepolia",
+    "deploy:mantle": "hardhat run script/deploy.js --network mantle",
+    "test": "hardhat test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.2",
+    "hardhat": "^2.28.6"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}

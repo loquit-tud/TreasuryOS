@@ -1,0 +1,85 @@
+"""Centralised, validated configuration (fail fast at import / app startup)."""
+
+from functools import lru_cache
+from typing import Literal
+
+from pydantic import Field, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    app_env: Literal["development", "production", "test"] = Field(
+        default="development",
+        validation_alias="APP_ENV",
+    )
+    database_url: str = Field(
+        default="postgresql+psycopg://postgres:postgres@localhost:5432/treasuryos",
+        validation_alias="DATABASE_URL",
+    )
+    cors_allow_origins: str = Field(
+        default="*",
+        validation_alias="CORS_ALLOW_ORIGINS",
+        description="Comma-separated origins, or * in development/test only.",
+    )
+    cors_allow_credentials: bool = Field(
+        default=False,
+        validation_alias="CORS_ALLOW_CREDENTIALS",
+    )
+    auto_create_schema: bool | None = Field(
+        default=None,
+        validation_alias="AUTO_CREATE_SCHEMA",
+        description="Override schema bootstrap. If unset: auto-create only in development/test.",
+    )
+
+    @field_validator("database_url", mode="after")
+    @classmethod
+    def normalize_postgres_driver(cls, url: str) -> str:
+        if url.startswith("postgresql://") and "+psycopg" not in url:
+            return url.replace("postgresql://", "postgresql+psycopg://", 1)
+        return url
+
+    def _parsed_origins(self) -> list[str]:
+        raw = self.cors_allow_origins.strip()
+        if self.app_env == "production":
+            if not raw or raw == "*":
+                return []
+            return [part.strip() for part in raw.split(",") if part.strip()]
+        if not raw or raw == "*":
+            return ["*"]
+        return [part.strip() for part in raw.split(",") if part.strip()]
+
+    @model_validator(mode="after")
+    def validate_cors(self) -> "Settings":
+        origins = self._parsed_origins()
+        if self.app_env == "production" and not origins:
+            raise ValueError(
+                "APP_ENV=production requires explicit CORS_ALLOW_ORIGINS "
+                "(comma-separated list, no wildcard)."
+            )
+        if self.cors_allow_credentials and "*" in origins:
+            raise ValueError(
+                "CORS_ALLOW_CREDENTIALS=true is incompatible with wildcard origins; "
+                "set explicit CORS_ALLOW_ORIGINS."
+            )
+        return self
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        return self._parsed_origins()
+
+    @property
+    def should_auto_create_schema(self) -> bool:
+        if self.auto_create_schema is not None:
+            return self.auto_create_schema
+        return self.app_env in ("development", "test")
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
