@@ -43,6 +43,10 @@ def blockchain_enabled() -> bool:
     )
 
 
+def blockchain_read_enabled() -> bool:
+    return bool(os.getenv("MANTLE_RPC_URL") and os.getenv("EXECUTION_LOG_CONTRACT"))
+
+
 def _bytes32_from_id(value: str) -> bytes:
     return Web3.keccak(text=value)
 
@@ -109,3 +113,37 @@ def log_treasury_action(
         raise RuntimeError("On-chain transaction reverted")
 
     return web3.to_hex(tx_hash)
+
+
+def decode_execution_log_tx(tx_hash: str) -> dict[str, Any]:
+    rpc_url = os.getenv("MANTLE_RPC_URL")
+    contract_address = os.getenv("EXECUTION_LOG_CONTRACT")
+    if not (rpc_url and contract_address):
+        raise RuntimeError("Missing blockchain read config. Set MANTLE_RPC_URL and EXECUTION_LOG_CONTRACT.")
+    if not (tx_hash.startswith("0x") and len(tx_hash) == 66):
+        raise RuntimeError("Invalid tx_hash format")
+
+    web3 = Web3(Web3.HTTPProvider(rpc_url))
+    if not web3.is_connected():
+        raise RuntimeError("Unable to connect to Mantle RPC")
+
+    receipt = web3.eth.get_transaction_receipt(tx_hash)
+    contract = web3.eth.contract(address=Web3.to_checksum_address(contract_address), abi=EXECUTION_LOG_ABI)
+    events = contract.events.TreasuryAction().process_receipt(receipt)
+    if not events:
+        raise RuntimeError("No TreasuryAction event found in transaction receipt")
+    evt = events[0]
+    args = evt["args"]
+    return {
+        "tx_hash": tx_hash,
+        "block_number": receipt.blockNumber,
+        "status": receipt.status,
+        "contract": contract_address,
+        "event": "TreasuryAction",
+        "vault_id": Web3.to_hex(args["vaultId"]),
+        "proposal_id": Web3.to_hex(args["proposalId"]),
+        "policy_hash": Web3.to_hex(args["policyHash"]),
+        "verdict": args["verdict"],
+        "reason": args["reason"],
+        "result_hash": Web3.to_hex(args["resultHash"]),
+    }

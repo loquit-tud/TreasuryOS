@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.db_models import LedgerEntryRecord, ProposalRecord, VaultRecord
 from app.schemas.models import LedgerEntry
+from app.services.blockchain import blockchain_read_enabled, decode_execution_log_tx
 from app.services.event_feed import fetch_recent_decisions
 from app.services.mappers import to_ledger_entry_schema
 
@@ -28,6 +29,18 @@ def get_recent_decision_events(limit: int = Query(50, ge=1, le=500)) -> dict[str
     """Latest constitutional decisions from the Redis stream (empty if REDIS_URL unset)."""
     events, redis_enabled = fetch_recent_decisions(limit=limit)
     return {"redis_enabled": redis_enabled, "count": len(events), "events": events}
+
+
+@router.get("/onchain/execution-log/{tx_hash}")
+def verify_execution_log_tx(tx_hash: str) -> dict[str, Any]:
+    """Decode the ExecutionLog TreasuryAction event for a tx hash (read-only)."""
+    if not blockchain_read_enabled():
+        return {"enabled": False, "detail": "Set MANTLE_RPC_URL and EXECUTION_LOG_CONTRACT to enable."}
+    try:
+        decoded = decode_execution_log_tx(tx_hash)
+    except RuntimeError as exc:
+        return {"enabled": True, "error": str(exc)}
+    return {"enabled": True, "decoded": decoded}
 
 
 @router.get("/vault/{vault_id}/health")
