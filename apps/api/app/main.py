@@ -10,6 +10,7 @@ from app.config import get_settings
 from app.db import engine
 from app.db_models import Base
 from app.routes.monitoring import router as monitoring_router
+from app.routes.evidence import router as evidence_router
 from app.routes.proposals import router as proposals_router
 from app.routes.simulations import router as simulations_router
 from app.routes.vaults import router as vaults_router
@@ -63,6 +64,7 @@ app.add_middleware(
 @app.middleware("http")
 async def request_id_and_logging_middleware(request: Request, call_next):
     rid = get_or_create_request_id(request)
+    request.state.request_id = rid
     t0 = start_timer()
     response = await call_next(request)
     response.headers["X-Request-Id"] = rid
@@ -81,6 +83,7 @@ app.include_router(vaults_router)
 app.include_router(proposals_router)
 app.include_router(simulations_router)
 app.include_router(monitoring_router)
+app.include_router(evidence_router)
 
 
 @app.get("/health")

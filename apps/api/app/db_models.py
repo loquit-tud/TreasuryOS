@@ -75,3 +75,17 @@ class LedgerEntryRecord(Base):
     execution_status: Mapped[str | None] = mapped_column(String(20), default="OFFCHAIN_ONLY", nullable=True)
     tx_hash: Mapped[str | None] = mapped_column(String(120), nullable=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class ConstitutionVersionRecord(Base):
+    __tablename__ = "constitution_versions"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    vault_id: Mapped[str] = mapped_column(
+        ForeignKey("vaults.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    constitution: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    constitution_hash: Mapped[str] = mapped_column(String(66), nullable=False, index=True)
+    actor: Mapped[str] = mapped_column(String(80), nullable=False, default="public")
+    request_id: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
