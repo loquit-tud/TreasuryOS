@@ -1,38 +1,35 @@
 # Next standalone (next.config.ts: output "standalone").
 #
-# --- Tailwind CSS v4 + lightningcss (native .node) on Alpine (musl) ---
+# Tailwind v4 → lightningcss native addon. Lockfiles generated on macOS/Windows often omit
+# Linux optional deps. Fix: (1) explicit lightningcss-linux-x64-gnu install, (2) copy .gnu.node
+# next to lightningcss for webpack fallback (lightningcss/node/index.js).
 #
-# package-lock.json is usually generated on macOS/Windows/Linux-glibc. `npm ci` follows the lockfile;
-# optional platform packages may not end up installed for linux-x64-musl unless explicitly added.
-# lightningcss then fails at build time (often surfaced via next/font → PostCSS → @tailwindcss/postcss).
+# Builder MUST use glibc (Debian/Ubuntu), not Alpine/musl: lightningcss resolves the binary via
+# detect-libc — on musl it requires lightningcss-linux-x64-musl (fragile with npm ci + workers).
+# On bookworm-slim, Node sees gnu and loads the gnu binary reliably.
 #
-# Fix:
-#   1. After `npm ci`, explicitly install the published native packages matching `lightningcss` in the lockfile.
-#   2. Copy the `.node` files next to `lightningcss` so `require("../lightningcss.*.node")` resolves (see
-#      node_modules/lightningcss/node/index.js), including webpack worker fallback paths.
-#
-# Pin must match apps/web/package-lock.json → lightningcss version (currently 1.32.0).
-FROM node:20-alpine AS builder
+# Pin to package-lock lightningcss version.
 ARG LIGHTNINGCSS_VERSION=1.32.0
 
+FROM node:20-bookworm-slim AS builder
+
 WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
 
 RUN npm ci --include=dev --include=optional \
-  && npm install --no-save \
-    lightningcss-linux-x64-gnu@${LIGHTNINGCSS_VERSION} \
-    lightningcss-linux-x64-musl@${LIGHTNINGCSS_VERSION} \
-  && test -f "node_modules/lightningcss-linux-x64-musl/lightningcss.linux-x64-musl.node" \
-  && echo "lightningcss musl binary present"
+  && npm install --no-save "lightningcss-linux-x64-gnu@${LIGHTNINGCSS_VERSION}" \
+  && test -f "node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node" \
+  && echo "lightningcss gnu binary present"
 
 COPY . .
 
-RUN cp -f "node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node" node_modules/lightningcss/ \
-  && cp -f "node_modules/lightningcss-linux-x64-musl/lightningcss.linux-x64-musl.node" node_modules/lightningcss/ \
-  && node -e "require('lightningcss'); console.log('lightningcss ok')"
-
-RUN node -v && npm -v && uname -a
+RUN cp -f "node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node" "node_modules/lightningcss/lightningcss.linux-x64-gnu.node" \
+  && node -e "require('lightningcss'); console.log('lightningcss ok (glibc)')"
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS="--max-old-space-size=8192"

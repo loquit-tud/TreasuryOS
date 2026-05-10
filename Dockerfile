@@ -1,27 +1,25 @@
-# Railway: repo root + `/Dockerfile` when service Root Directory is unset — builds `apps/web`.
-#
-# See apps/web/Dockerfile for Tailwind v4 / lightningcss / Alpine musl + lockfile notes.
-FROM node:20-alpine AS builder
+# Railway repo root: service uses `/Dockerfile`, builds `apps/web`.
+# Glibc builder (bookworm) — see apps/web/Dockerfile (avoid Alpine/musl + lightningcss).
 ARG LIGHTNINGCSS_VERSION=1.32.0
 
+FROM node:20-bookworm-slim AS builder
+
 WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY apps/web/package*.json ./
 
 RUN npm ci --include=dev --include=optional \
-  && npm install --no-save \
-    lightningcss-linux-x64-gnu@${LIGHTNINGCSS_VERSION} \
-    lightningcss-linux-x64-musl@${LIGHTNINGCSS_VERSION} \
-  && test -f "node_modules/lightningcss-linux-x64-musl/lightningcss.linux-x64-musl.node" \
-  && echo "lightningcss musl binary present"
+  && npm install --no-save "lightningcss-linux-x64-gnu@${LIGHTNINGCSS_VERSION}" \
+  && test -f "node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node"
 
 COPY apps/web/ .
 
-RUN cp -f "node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node" node_modules/lightningcss/ \
-  && cp -f "node_modules/lightningcss-linux-x64-musl/lightningcss.linux-x64-musl.node" node_modules/lightningcss/ \
-  && node -e "require('lightningcss'); console.log('lightningcss ok')"
-
-RUN node -v && npm -v && uname -a
+RUN cp -f "node_modules/lightningcss-linux-x64-gnu/lightningcss.linux-x64-gnu.node" "node_modules/lightningcss/lightningcss.linux-x64-gnu.node" \
+  && node -e "require('lightningcss'); console.log('lightningcss ok (glibc)')"
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS="--max-old-space-size=8192"
