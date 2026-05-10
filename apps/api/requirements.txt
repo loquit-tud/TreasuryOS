@@ -7,3 +7,5 @@ alembic
 psycopg[binary]
 web3
 redis>=5.0.0,<6
+pytest>=8.0.0
+httpx>=0.27.0

@@ -60,7 +60,8 @@ def log_treasury_action(
     contract_address = os.getenv("EXECUTION_LOG_CONTRACT")
     private_key = os.getenv("TREASURY_EXECUTOR_PRIVATE_KEY")
     mnemonic = os.getenv("TREASURY_EXECUTOR_MNEMONIC")
-    chain_id = int(os.getenv("MANTLE_CHAIN_ID", "5003"))
+    # Mantle mainnet = 5000; Sepolia = 5003 — always set explicitly if not mainnet.
+    chain_id = int(os.getenv("MANTLE_CHAIN_ID", "5000"))
 
     if not (rpc_url and contract_address and (private_key or mnemonic)):
         raise RuntimeError(

@@ -35,16 +35,18 @@ set DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/treasuryo
 uvicorn app.main:app --reload --port 8000
 ```
 
-Optional real on-chain execution logging (Mantle):
+Optional real on-chain execution logging (Mantle mainnet — matches `apps/api/.env.example`):
 
 ```bash
-set MANTLE_RPC_URL=<mantle_rpc_url>
+set MANTLE_RPC_URL=https://rpc.mantle.xyz
 set MANTLE_CHAIN_ID=5000
-set EXECUTION_LOG_CONTRACT=<deployed_execution_log_address>
+set EXECUTION_LOG_CONTRACT=0xA22ebFf573BedA62202490A87eCE31C7c91462b9
 set TREASURY_EXECUTOR_PRIVATE_KEY=<private_key>
 # or
 set TREASURY_EXECUTOR_MNEMONIC="word1 word2 ... word12"
 ```
+
+**Railway:** set the same variable names under the API service (Root Directory `apps/api`). Add `DATABASE_URL`, `APP_ENV`, `CORS_ALLOW_ORIGINS` for production.
 
 ## Run Postgres + Redis (Docker)
 
@@ -52,6 +54,16 @@ set TREASURY_EXECUTOR_MNEMONIC="word1 word2 ... word12"
 cd infra
 docker compose -f compose.yml up -d
 ```
+
+## API tests (constitutional e2e)
+
+```bash
+cd apps/api
+python -m pip install -r requirements.txt
+python -m pytest tests/ -v
+```
+
+**CI:** on push/PR to `main`/`master`, GitHub Actions runs the same tests (`.github/workflows/ci.yml`).
 
 ## API quick checks
 
@@ -67,5 +79,5 @@ Health:
 1. ~~Add SQLAlchemy migrations (Alembic) for schema versioning.~~ **Done:** `alembic upgrade head` runs on API startup; baseline revision `001_initial`.
 2. ~~Add Redis event feed for decision streaming.~~ **Done:** set `REDIS_URL` → decisions appended on evaluate; `GET /monitoring/decisions/recent`.
 3. ~~Add simulation charts with Recharts + Framer Motion transitions.~~ **Done:** `/simulations` — `ComposedChart` (survivability, compliance, drawdown axis) + motion KPIs / sections, `prefers-reduced-motion` respected.
-4. Wire `packages/contracts/src` deployments to Mantle mainnet.
-5. Add end-to-end tests for constitutional enforcement flow.
+4. ~~Wire `packages/contracts` deployments to Mantle mainnet.~~ **Done:** Hardhat networks `mantle` / `mantleSepolia`; `npm run deploy:mantle` writes `deployments/mantle.json`; API env `EXECUTION_LOG_CONTRACT` + `MANTLE_CHAIN_ID` (default chain id in Python aligned to **5000**). See `packages/contracts/README.md`.
+5. ~~Add end-to-end tests for constitutional enforcement flow.~~ **Done:** `cd apps/api && python -m pytest tests/ -v` — SQLite + Alembic on startup; vault → proposal → evaluate (ALLOW/REJECT) → `execution-record` (manual `tx_hash` with chain disabled).
