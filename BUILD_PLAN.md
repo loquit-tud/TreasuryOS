@@ -76,7 +76,7 @@ treasuryos/
 
 ## 4) Core Modules (MVP scope)
 
-1. `Constitution Engine` (determinist, fara LLM in decizie)
+1. `Constitution Engine` (deterministic, no LLM in decisioning)
 2. `Simulation Engine` (3 scenarii de risc)
 3. `Proposal/Evaluation Flow` (AI proposal -> policy check -> verdict)
 4. `Monitoring Terminal` (dashboard + feed + ledger)
@@ -172,7 +172,7 @@ treasuryos/
 ## 8) Demo Flow (obligatoriu)
 
 1. User creeaza vault.
-2. User seteaza constitutia.
+2. User sets the constitution.
 3. AI propune o mutare riscanta.
 4. Constitution Engine blocheaza mutarea.
 5. User ruleaza "Black Swan Simulation".
@@ -222,7 +222,7 @@ MVP este gata cand:
 - Exista minim 1 proposal `REJECTED` de constitution.
 - Exista minim 1 simulation cu `survival_score`.
 - Exista ledger vizual al deciziilor.
-- Flow-ul complet ruleaza fara intreruperi in demo.
+- The full flow runs end-to-end without interruptions in the demo.
 
 ---
 
