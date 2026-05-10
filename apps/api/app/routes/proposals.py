@@ -10,6 +10,7 @@ from app.db_models import LedgerEntryRecord, ProposalRecord, VaultRecord
 from app.schemas.models import Constitution, Decision, ExecutionRecordUpdate, Proposal, ProposalCreate
 from app.services.blockchain import blockchain_enabled, log_treasury_action
 from app.services.constitution_engine import evaluate_proposal
+from app.services.event_feed import publish_decision_event
 from app.services.mappers import to_proposal_schema
 
 router = APIRouter(prefix="/proposals", tags=["proposals"])
@@ -66,6 +67,12 @@ def evaluate(proposal_id: str, db: Session = Depends(get_db)) -> Decision:
         )
     )
     db.commit()
+    publish_decision_event(
+        vault_id=proposal_record.vault_id,
+        proposal_id=proposal_record.id,
+        verdict=decision.decision,
+        reasons=decision.reasons,
+    )
     return decision
 
 

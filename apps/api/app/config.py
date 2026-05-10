@@ -36,6 +36,11 @@ class Settings(BaseSettings):
         validation_alias="AUTO_CREATE_SCHEMA",
         description="Override schema bootstrap. If unset: auto-create only in development/test.",
     )
+    redis_url: str | None = Field(
+        default=None,
+        validation_alias="REDIS_URL",
+        description="Redis URL for decision event stream (optional). e.g. redis://localhost:6379/0",
+    )
 
     @field_validator("database_url", mode="after")
     @classmethod

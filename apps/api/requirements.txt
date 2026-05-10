@@ -6,3 +6,4 @@ sqlalchemy
 alembic
 psycopg[binary]
 web3
+redis>=5.0.0,<6

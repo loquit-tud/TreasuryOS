@@ -64,8 +64,8 @@ Health:
 
 ## Next build targets
 
-1. Add SQLAlchemy migrations (Alembic) for schema versioning.
-2. Add Redis event feed for decision streaming.
+1. ~~Add SQLAlchemy migrations (Alembic) for schema versioning.~~ **Done:** `alembic upgrade head` runs on API startup; baseline revision `001_initial`.
+2. ~~Add Redis event feed for decision streaming.~~ **Done:** set `REDIS_URL` → decisions appended on evaluate; `GET /monitoring/decisions/recent`.
 3. Add simulation charts with Recharts + Framer Motion transitions.
 4. Wire `packages/contracts/src` deployments to Mantle mainnet.
 5. Add end-to-end tests for constitutional enforcement flow.

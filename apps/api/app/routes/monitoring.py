@@ -1,10 +1,13 @@
-from fastapi import APIRouter, Depends
+from typing import Any
+
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.db_models import LedgerEntryRecord, ProposalRecord, VaultRecord
 from app.schemas.models import LedgerEntry
+from app.services.event_feed import fetch_recent_decisions
 from app.services.mappers import to_ledger_entry_schema
 
 router = APIRouter(prefix="/monitoring", tags=["monitoring"])
@@ -18,6 +21,13 @@ def get_ledger(vault_id: str, db: Session = Depends(get_db)) -> list[LedgerEntry
         .order_by(LedgerEntryRecord.timestamp.desc())
     ).all()
     return [to_ledger_entry_schema(item) for item in records]
+
+
+@router.get("/decisions/recent")
+def get_recent_decision_events(limit: int = Query(50, ge=1, le=500)) -> dict[str, Any]:
+    """Latest constitutional decisions from the Redis stream (empty if REDIS_URL unset)."""
+    events, redis_enabled = fetch_recent_decisions(limit=limit)
+    return {"redis_enabled": redis_enabled, "count": len(events), "events": events}
 
 
 @router.get("/vault/{vault_id}/health")

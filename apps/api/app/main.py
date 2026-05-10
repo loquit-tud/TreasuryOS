@@ -12,6 +12,7 @@ from app.routes.proposals import router as proposals_router
 from app.routes.simulations import router as simulations_router
 from app.routes.vaults import router as vaults_router
 from app.services.db_bootstrap import ensure_runtime_columns
+from app.services.migrations import run_alembic_upgrade
 
 
 def _bootstrap_schema_sync() -> None:
@@ -28,7 +29,9 @@ def _dispose_engine_sync() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Avoid blocking the event loop during sync DDL (create_all / inspect).
+    # Migrations first (production + dev): Alembic is the source of truth for schema versioning.
+    await asyncio.to_thread(run_alembic_upgrade)
+    # Dev/test: optional create_all + runtime column patches if enabled.
     await asyncio.to_thread(_bootstrap_schema_sync)
     yield
     await asyncio.to_thread(_dispose_engine_sync)
