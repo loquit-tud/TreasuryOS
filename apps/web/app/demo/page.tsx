@@ -182,6 +182,9 @@ export default function DemoPage() {
         className={`mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-10 md:px-10 ${shaking ? "demo-screen-shake" : ""}`}
       >
         <header>
+          <p className="font-mono text-xs uppercase tracking-[0.22em] text-cyan-500/90">
+            Primary judge path — not optional chrome
+          </p>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-rose-500/80">Crisis simulator</p>
           <h1 className="mt-3 font-mono text-3xl font-bold tracking-tight text-slate-50 md:text-5xl">
             BLACK SWAN EVENT
@@ -190,8 +193,8 @@ export default function DemoPage() {
             Volatility · rejection · preservation
           </p>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-400">
-            If it feels polite, you lose. You should feel leverage hunger, a constitutional slap, then lawful
-            execution.
+            Same story as the homepage: AI proposes → treasury law stress-tests → BLOCK or ALLOW → proof. If it feels
+            polite, you lose — you should feel leverage hunger, a constitutional slap, then lawful execution.
           </p>
         </header>
 

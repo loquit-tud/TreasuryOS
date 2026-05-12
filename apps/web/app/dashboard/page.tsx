@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 /** React Flow touches DOM/window — must not SSR (Docker/Linux builds fail otherwise). */
@@ -40,9 +40,22 @@ export default function DashboardPage() {
     runEvaluation,
     runBlackSwan,
     markExecutionLogged,
+    runJudgeDemo90s,
   } = useTreasuryStore();
 
   const [shockOverlay, setShockOverlay] = useState(false);
+  const autoJudgeStarted = useRef(false);
+
+  useEffect(() => {
+    if (autoJudgeStarted.current) return;
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("judge90") !== "1") return;
+    autoJudgeStarted.current = true;
+    void runJudgeDemo90s().finally(() => {
+      window.history.replaceState({}, "", "/dashboard");
+    });
+  }, [runJudgeDemo90s]);
 
   const lawPreview = useMemo(() => {
     if (!vault) return null;
@@ -187,6 +200,31 @@ export default function DashboardPage() {
         cinematicStress ? "mission-vignette mission-vignette--stress" : "mission-vignette"
       }`}
     >
+      <section className="rounded-xl border border-cyan-500/25 bg-gradient-to-r from-cyan-950/40 to-[#080c1c] p-5 md:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-cyan-400/80">Hackathon judges</p>
+            <h2 className="mt-1 text-lg font-semibold text-slate-50 md:text-xl">Run 90s Judge Demo</h2>
+            <p className="mt-2 max-w-2xl text-sm text-slate-400">
+              One control: vault online → risky AI intent → constitution <span className="text-rose-300">REJECT</span> →
+              stress → compliant intent → <span className="text-cyan-300">ALLOW</span> → execution log. Same sequence as{" "}
+              <Link href="/demo" className="text-cyan-400 underline-offset-4 hover:underline">
+                /demo
+              </Link>
+              , without hunting for buttons.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void runJudgeDemo90s()}
+            disabled={isLoading}
+            className="shrink-0 rounded-lg border border-cyan-400/40 bg-cyan-600/90 px-6 py-4 text-center text-sm font-semibold text-white shadow-[0_0_24px_-8px_rgba(34,211,238,0.5)] transition hover:bg-cyan-500 disabled:opacity-50 md:px-8"
+          >
+            {isLoading ? "Running demo…" : "Run 90s Judge Demo"}
+          </button>
+        </div>
+      </section>
+
       {/* Top bar — branding is law, not “dashboard” */}
       <header className="flex flex-col gap-4 border-b border-white/[0.08] pb-6 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap items-center gap-4">
@@ -208,7 +246,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <Link href="/demo" className="font-mono text-xs text-rose-400/90 underline-offset-4 hover:underline">
-          Black Swan Theatre →
+          Primary judge path (/demo) →
         </Link>
       </header>
 

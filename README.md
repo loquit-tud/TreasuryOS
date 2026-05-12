@@ -4,6 +4,12 @@
 
 TreasuryOS is a constitutional risk layer for autonomous treasuries on Mantle. AI proposes capital actions. TreasuryOS stress-tests them against treasury law. Unsafe actions are blocked, safe actions are allowed, and decisions can be proven on-chain.
 
+### Canonical pitch (verbatim — README, GitHub About, DoraHacks, video)
+
+Use **exactly** this wording everywhere public (no paraphrase):
+
+> TreasuryOS is a constitutional risk layer for autonomous treasuries on Mantle. AI proposes capital actions. TreasuryOS stress-tests them against treasury law. Unsafe actions are blocked, safe actions are allowed, and decisions can be proven on-chain.
+
 > **Suggested GitHub “About” description:** Constitutional risk layer for autonomous treasuries on Mantle — AI proposes; treasury law allows or blocks; decisions auditable on-chain.
 
 ## Judge-ready links
@@ -16,7 +22,7 @@ TreasuryOS is a constitutional risk layer for autonomous treasuries on Mantle. A
 | **On-chain proof** | `packages/contracts` — deploy + verify steps in [`packages/contracts/README.md`](packages/contracts/README.md) |
 | **DoraHacks / demo video** | _(add submission URL and video link when published)_ |
 
-**60s demo path:** open the live app → **Live mission control** (`/dashboard`) or **Guided crisis run** (`/demo`).
+**90s judge demo:** homepage or dashboard → **Run 90s Judge Demo** (or open `/dashboard?judge90=1` — auto-runs the full sequence). Step-by-step UI: `/demo` (primary judge path).
 
 ## What this is (and is not)
 

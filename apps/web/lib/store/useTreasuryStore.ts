@@ -48,7 +48,11 @@ type TreasuryState = {
   refreshLedger: () => Promise<void>;
   refreshSimulationHistory: () => Promise<void>;
   saveConstitution: (constitution: Constitution) => Promise<void>;
+  /** Full judge path: vault → REJECT risky intent → shock → ALLOW compliant → execution log (matches /demo sequence). */
+  runJudgeDemo90s: () => Promise<void>;
 };
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const defaultProposalPayload = {
   action: "REBALANCE" as const,
@@ -230,6 +234,54 @@ export const useTreasuryStore = create<TreasuryState>((set, get) => ({
     try {
       const updatedVault = await updateConstitution(vault.id, constitution);
       set({ vault: updatedVault });
+    } catch (error) {
+      set({ error: toErrorMessage(error) });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  runJudgeDemo90s: async () => {
+    const run = get();
+    set({ isLoading: true, error: null });
+    try {
+      await run.initializeDemo();
+      await sleep(400);
+      let st = get();
+      if (!st.vault || !st.proposal) {
+        throw new Error(st.error || "Demo init failed — check API connectivity.");
+      }
+
+      await run.runEvaluation();
+      st = get();
+      if (st.decision?.decision !== "REJECT") {
+        throw new Error(
+          st.error ||
+            `Expected REJECT on aggressive proposal, got ${st.decision?.decision ?? "NONE"}.`
+        );
+      }
+
+      await run.runBlackSwan();
+      await sleep(600);
+
+      await run.createCompliantProposal();
+      st = get();
+      if (!st.proposal) {
+        throw new Error(st.error || "Failed to create compliant proposal.");
+      }
+
+      await run.runEvaluation();
+      await sleep(500);
+      st = get();
+      if (st.decision?.decision !== "ALLOW") {
+        throw new Error(
+          st.error ||
+            `Expected ALLOW on compliant proposal, got ${st.decision?.decision ?? "NONE"}.`
+        );
+      }
+
+      await run.markExecutionLogged();
+      await sleep(300);
     } catch (error) {
       set({ error: toErrorMessage(error) });
     } finally {

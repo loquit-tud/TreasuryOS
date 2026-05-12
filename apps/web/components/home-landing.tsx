@@ -24,6 +24,11 @@ export function HomeLanding() {
         <CapitalMapBackground />
         <div className="relative z-10 mx-auto flex min-h-[92vh] w-full max-w-5xl flex-col justify-center gap-10 px-6 py-16 md:flex-row md:items-center md:px-10 md:py-20">
           <div className="max-w-xl flex-1">
+            <blockquote className="mb-8 border-l-2 border-cyan-500/50 pl-4 text-sm leading-relaxed text-slate-300 md:text-base">
+              TreasuryOS is a constitutional risk layer for autonomous treasuries on Mantle. AI proposes capital
+              actions. TreasuryOS stress-tests them against treasury law. Unsafe actions are blocked, safe actions are
+              allowed, and decisions can be proven on-chain.
+            </blockquote>
             <p className="font-mono text-xs uppercase tracking-[0.28em] text-slate-500">TreasuryOS · Mantle</p>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.06] tracking-tight text-slate-50 md:text-5xl lg:text-6xl">
               Constitutional risk for autonomous treasuries.
@@ -56,17 +61,30 @@ export function HomeLanding() {
                 </li>
               </ol>
             </div>
-            <div className="mt-10 flex flex-wrap gap-3">
-              <Link href="/dashboard" className="btn-primary inline-block px-8 py-3.5 text-sm font-semibold">
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <Link
+                href="/dashboard?judge90=1"
+                className="btn-primary inline-block px-8 py-4 text-center text-sm font-semibold sm:min-w-[220px]"
+              >
+                Run 90s Judge Demo
+              </Link>
+              <Link
+                href="/dashboard"
+                className="inline-block border border-white/[0.12] bg-slate-950/40 px-6 py-3.5 text-center text-sm font-medium text-slate-200 transition hover:border-cyan-500/35"
+              >
                 Live mission control
               </Link>
               <Link
                 href="/demo"
-                className="inline-flex items-center border border-rose-500/35 bg-rose-950/20 px-6 py-3.5 font-mono text-sm text-rose-200/90 transition hover:border-rose-400/60"
+                className="inline-flex items-center justify-center border border-rose-500/35 bg-rose-950/20 px-6 py-3.5 font-mono text-sm text-rose-200/90 transition hover:border-rose-400/60"
               >
-                Guided crisis run (90s)
+                Same flow — step-by-step theatre →
               </Link>
             </div>
+            <p className="mt-3 text-xs text-slate-500">
+              Judges: one click runs vault → constitution <span className="text-rose-300/90">REJECT</span> → stress →{" "}
+              <span className="text-cyan-300/90">ALLOW</span> → execution log on the dashboard.
+            </p>
           </div>
           <div className="w-full max-w-md flex-1 md:max-w-lg">
             <HeroConstitutionalBeat />
@@ -76,9 +94,13 @@ export function HomeLanding() {
 
       {/* One-line thesis */}
       <section className="border-y border-white/[0.06] bg-[#070a1a]/90 py-16 text-center">
-        <p className="mx-auto max-w-2xl px-6 font-mono text-sm leading-relaxed text-slate-400 md:text-base">
-          One story: <span className="text-slate-200">propose → constitution → allow or block → audit trail</span> — for
-          autonomous treasuries on Mantle, without diluting the product into a generic “AI finance” pitch.
+        <p className="mx-auto max-w-3xl px-6 text-sm leading-relaxed text-slate-300 md:text-base">
+          <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">Submission line (use verbatim)</span>
+          <span className="mt-3 block text-slate-200">
+            TreasuryOS is a constitutional risk layer for autonomous treasuries on Mantle. AI proposes capital actions.
+            TreasuryOS stress-tests them against treasury law. Unsafe actions are blocked, safe actions are allowed, and
+            decisions can be proven on-chain.
+          </span>
         </p>
       </section>
 
