@@ -74,6 +74,15 @@ def ensure_runtime_columns(engine: Engine) -> None:
                 conn.execute(text("ALTER TABLE vaults ADD COLUMN constitution_hash VARCHAR(66)"))
             if "chain_status" not in vault_columns:
                 conn.execute(text("ALTER TABLE vaults ADD COLUMN chain_status VARCHAR(20)"))
+            # Legacy DBs sometimes predate full 001 vault columns — ORM insert requires these.
+            if "health_score" not in vault_columns:
+                conn.execute(
+                    text("ALTER TABLE vaults ADD COLUMN health_score INTEGER NOT NULL DEFAULT 94")
+                )
+            if "risk_score" not in vault_columns:
+                conn.execute(
+                    text("ALTER TABLE vaults ADD COLUMN risk_score INTEGER NOT NULL DEFAULT 91")
+                )
 
     if "ledger_entries" in inspector.get_table_names():
         ledger_columns = {column["name"] for column in inspector.get_columns("ledger_entries")}

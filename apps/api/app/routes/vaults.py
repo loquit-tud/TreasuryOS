@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.db import get_db
 from app.audit import auth_subject, request_id
 from app.db_models import ConstitutionVersionRecord, VaultRecord
@@ -47,13 +48,17 @@ def create_vault(payload: VaultCreate, request: Request, db: Session = Depends(g
         db.commit()
         db.refresh(record)
         return to_vault_schema(record)
-    except SQLAlchemyError:
+    except SQLAlchemyError as exc:
         db.rollback()
         logger.exception("create_vault failed (database)")
-        raise HTTPException(
-            status_code=503,
-            detail="Database write failed (vault bootstrap). Check API logs and GET /health/db.",
-        ) from None
+        detail = (
+            "Database write failed (vault bootstrap). Check API logs and GET /health/db. "
+            "If stuck, set EXPOSE_DB_ERROR_DETAIL=true on the API service temporarily."
+        )
+        if get_settings().expose_db_error_detail:
+            orig = getattr(exc, "orig", None) or exc
+            detail = f"{detail} SQL: {str(orig)[:720]}"
+        raise HTTPException(status_code=503, detail=detail) from None
 
 
 @router.get("/{vault_id}", response_model=Vault)
@@ -92,10 +97,11 @@ def update_constitution(
         db.commit()
         db.refresh(record)
         return to_vault_schema(record)
-    except SQLAlchemyError:
+    except SQLAlchemyError as exc:
         db.rollback()
         logger.exception("update_constitution failed (database)")
-        raise HTTPException(
-            status_code=503,
-            detail="Database write failed (constitution update). Check API logs and GET /health/db.",
-        ) from None
+        detail = "Database write failed (constitution update). Check API logs and GET /health/db."
+        if get_settings().expose_db_error_detail:
+            orig = getattr(exc, "orig", None) or exc
+            detail = f"{detail} SQL: {str(orig)[:720]}"
+        raise HTTPException(status_code=503, detail=detail) from None

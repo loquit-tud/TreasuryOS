@@ -121,6 +121,20 @@ def health_db() -> dict[str, object]:
                 "constitution_versions": "constitution_versions" in names,
             },
         }
+        if "vaults" in names:
+            vcols = {c["name"] for c in inv.get_columns("vaults")}
+            need = (
+                "constitution_hash",
+                "chain_status",
+                "health_score",
+                "risk_score",
+                "constitution",
+                "name",
+                "created_at",
+            )
+            body["vault_columns"] = {k: k in vcols for k in need}
+            if not all(body["vault_columns"].values()):
+                body["status"] = "degraded"
         if "vaults" not in names or "constitution_versions" not in names:
             body["status"] = "degraded"
         return body

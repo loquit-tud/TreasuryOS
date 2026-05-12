@@ -57,6 +57,10 @@ def test_health_db(client: TestClient) -> None:
     assert body["database_reachable"] is True
     assert body["tables"]["vaults"] is True
     assert body["tables"]["constitution_versions"] is True
+    assert body["status"] == "ok"
+    vc = body.get("vault_columns") or {}
+    assert vc.get("health_score") is True
+    assert vc.get("risk_score") is True
 
 
 def test_constitutional_flow_allow_and_execute_record(client: TestClient) -> None:

@@ -51,6 +51,11 @@ class Settings(BaseSettings):
         validation_alias="ALLOW_PUBLIC_API_IN_PROD",
         description="If true, production allows unauthenticated requests even when API_KEYS is unset.",
     )
+    expose_db_error_detail: bool = Field(
+        default=False,
+        validation_alias="EXPOSE_DB_ERROR_DETAIL",
+        description="If true, SQL error fragments may be returned in 503 responses (debug only).",
+    )
 
     @field_validator("database_url", mode="after")
     @classmethod
