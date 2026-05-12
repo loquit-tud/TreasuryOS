@@ -1,5 +1,33 @@
+import logging
+
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
+
+from app.db_models import ConstitutionVersionRecord
+
+logger = logging.getLogger(__name__)
+
+
+def ensure_constitution_versions_table(engine: Engine) -> None:
+    """
+    Idempotent safety net after Alembic.
+
+    If production DB was created before migration 002, or alembic_version drifted,
+    POST /vaults would 500 on insert into constitution_versions. Creating the
+    table here matches revision 002_constitution_versions.
+    """
+    inspector = inspect(engine)
+    tables = set(inspector.get_table_names())
+    if "constitution_versions" in tables:
+        return
+    if "vaults" not in tables:
+        logger.warning("ensure_constitution_versions_table: vaults missing; skip DDL")
+        return
+    ConstitutionVersionRecord.__table__.create(bind=engine, checkfirst=True)
+    logger.warning(
+        "Created missing table constitution_versions (schema self-heal). "
+        "Confirm `alembic upgrade head` on deploy."
+    )
 
 
 def ensure_runtime_columns(engine: Engine) -> None:

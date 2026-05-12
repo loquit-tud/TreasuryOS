@@ -14,7 +14,7 @@ from app.routes.evidence import router as evidence_router
 from app.routes.proposals import router as proposals_router
 from app.routes.simulations import router as simulations_router
 from app.routes.vaults import router as vaults_router
-from app.services.db_bootstrap import ensure_runtime_columns
+from app.services.db_bootstrap import ensure_constitution_versions_table, ensure_runtime_columns
 from app.services.migrations import run_alembic_upgrade
 from app.observability import elapsed_ms, get_or_create_request_id, log_request, start_timer
 from app.security import require_api_key
@@ -26,6 +26,13 @@ def _bootstrap_schema_sync() -> None:
         return
     Base.metadata.create_all(bind=engine)
     ensure_runtime_columns(engine)
+    ensure_constitution_versions_table(engine)
+
+
+def _schema_safety_net_sync() -> None:
+    """Runs in every environment after Alembic: patch legacy columns + missing 002 table."""
+    ensure_runtime_columns(engine)
+    ensure_constitution_versions_table(engine)
 
 
 def _dispose_engine_sync() -> None:
@@ -36,6 +43,8 @@ def _dispose_engine_sync() -> None:
 async def lifespan(app: FastAPI):
     # Migrations first (production + dev): Alembic is the source of truth for schema versioning.
     await asyncio.to_thread(run_alembic_upgrade)
+    # Production + dev: idempotent DDL fixes (legacy vaults columns, constitution_versions if missing).
+    await asyncio.to_thread(_schema_safety_net_sync)
     # Dev/test: optional create_all + runtime column patches if enabled.
     await asyncio.to_thread(_bootstrap_schema_sync)
     yield
