@@ -1,7 +1,9 @@
+import logging
 from datetime import datetime, timezone
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -10,6 +12,8 @@ from app.db_models import ConstitutionVersionRecord, VaultRecord
 from app.schemas.models import Constitution, Vault, VaultCreate
 from app.services.hashing import constitution_hash
 from app.services.mappers import to_vault_schema
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/vaults", tags=["vaults"])
 
@@ -27,21 +31,29 @@ def create_vault(payload: VaultCreate, request: Request, db: Session = Depends(g
         chain_status="CHAIN_READY",
         created_at=datetime.now(timezone.utc),
     )
-    db.add(record)
-    db.add(
-        ConstitutionVersionRecord(
-            id=f"cv_{uuid4().hex[:10]}",
-            vault_id=vault_id,
-            constitution=c,
-            constitution_hash=c_hash,
-            actor=auth_subject(request),
-            request_id=request_id(request),
-            created_at=datetime.now(timezone.utc),
+    try:
+        db.add(record)
+        db.add(
+            ConstitutionVersionRecord(
+                id=f"cv_{uuid4().hex[:10]}",
+                vault_id=vault_id,
+                constitution=c,
+                constitution_hash=c_hash,
+                actor=auth_subject(request),
+                request_id=request_id(request),
+                created_at=datetime.now(timezone.utc),
+            )
         )
-    )
-    db.commit()
-    db.refresh(record)
-    return to_vault_schema(record)
+        db.commit()
+        db.refresh(record)
+        return to_vault_schema(record)
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("create_vault failed (database)")
+        raise HTTPException(
+            status_code=503,
+            detail="Database write failed (vault bootstrap). Check API logs and GET /health/db.",
+        ) from None
 
 
 @router.get("/{vault_id}", response_model=Vault)
@@ -65,17 +77,25 @@ def update_constitution(
     record.constitution = c
     record.constitution_hash = c_hash
     record.chain_status = "CHAIN_READY"
-    db.add(
-        ConstitutionVersionRecord(
-            id=f"cv_{uuid4().hex[:10]}",
-            vault_id=vault_id,
-            constitution=c,
-            constitution_hash=c_hash,
-            actor=auth_subject(request),
-            request_id=request_id(request),
-            created_at=datetime.now(timezone.utc),
+    try:
+        db.add(
+            ConstitutionVersionRecord(
+                id=f"cv_{uuid4().hex[:10]}",
+                vault_id=vault_id,
+                constitution=c,
+                constitution_hash=c_hash,
+                actor=auth_subject(request),
+                request_id=request_id(request),
+                created_at=datetime.now(timezone.utc),
+            )
         )
-    )
-    db.commit()
-    db.refresh(record)
-    return to_vault_schema(record)
+        db.commit()
+        db.refresh(record)
+        return to_vault_schema(record)
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("update_constitution failed (database)")
+        raise HTTPException(
+            status_code=503,
+            detail="Database write failed (constitution update). Check API logs and GET /health/db.",
+        ) from None

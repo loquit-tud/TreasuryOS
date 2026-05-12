@@ -50,6 +50,15 @@ def test_health(client: TestClient) -> None:
     assert response.json()["status"] == "ok"
 
 
+def test_health_db(client: TestClient) -> None:
+    response = client.get("/health/db")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["database_reachable"] is True
+    assert body["tables"]["vaults"] is True
+    assert body["tables"]["constitution_versions"] is True
+
+
 def test_constitutional_flow_allow_and_execute_record(client: TestClient) -> None:
     vault_res = client.post(
         "/vaults",
