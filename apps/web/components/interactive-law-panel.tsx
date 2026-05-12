@@ -72,7 +72,7 @@ export function InteractiveLawPanel({ value, onChange }: Props) {
             onChange={(stable_reserve_min_pct) => onChange({ ...value, stable_reserve_min_pct })}
           />
           <SliderRow
-            label="RWA exposure cap"
+            label="Illiquid / non-stable sleeve cap"
             value={value.rwa_exposure_max_pct}
             min={20}
             max={95}

@@ -121,8 +121,8 @@ function buildGraph(
       position: { x: 536, y: 48 },
       data: {
         variant: "rwa",
-        title: "RWA BOOK",
-        sub: stressActive ? "stress channel" : "illiquidity",
+        title: "ILLIQUID SLEEVE",
+        sub: stressActive ? "stress channel" : "non-stable book",
         blockPulse,
       },
     },

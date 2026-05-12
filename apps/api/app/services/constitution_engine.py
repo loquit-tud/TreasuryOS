@@ -17,7 +17,9 @@ def evaluate_proposal(constitution: Constitution, proposal: ProposalCreate) -> D
 
     if proposal.proposed_rwa_exposure_pct > constitution.rwa_exposure_max_pct:
         violated_rules.append("rwa_exposure_max_pct")
-        reasons.append("RWA exposure would exceed the allowed cap.")
+        reasons.append(
+            "Proposed illiquid / non-stable sleeve would exceed the constitutional cap."
+        )
 
     if not constitution.leverage_allowed and proposal.proposed_leverage_enabled:
         violated_rules.append("leverage_allowed")

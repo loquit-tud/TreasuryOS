@@ -1,20 +1,34 @@
 # TreasuryOS
 
-Constitutional Finance for Autonomous Capital.
+**Constitutional risk layer for autonomous treasuries on Mantle.**
 
-## Current status
+TreasuryOS is a constitutional risk layer for autonomous treasuries on Mantle. AI proposes capital actions. TreasuryOS stress-tests them against treasury law. Unsafe actions are blocked, safe actions are allowed, and decisions can be proven on-chain.
 
-Initial scaffold is ready with:
-- `apps/web` (`Next.js 16 + Tailwind`) and first pages:
-  - `/` (landing)
-  - `/dashboard`
-  - `/constitution`
-- `apps/api` (`FastAPI`) and deterministic Constitution Engine flow on PostgreSQL:
-  - create vault
-  - create proposal
-  - evaluate proposal (`ALLOW/REJECT`)
-  - run simulation
-  - inspect monitoring ledger
+> **Suggested GitHub “About” description:** Constitutional risk layer for autonomous treasuries on Mantle — AI proposes; treasury law allows or blocks; decisions auditable on-chain.
+
+## Judge-ready links
+
+| What | Where |
+|------|--------|
+| **Live app** | [treasuryos-web-production.up.railway.app](https://treasuryos-web-production.up.railway.app/) |
+| **API health** | [treasuryos-backend-production.up.railway.app/health](https://treasuryos-backend-production.up.railway.app/health) |
+| **Repository** | [github.com/loquit-tud/TreasuryOS](https://github.com/loquit-tud/TreasuryOS) |
+| **On-chain proof** | `packages/contracts` — deploy + verify steps in [`packages/contracts/README.md`](packages/contracts/README.md) |
+| **DoraHacks / demo video** | _(add submission URL and video link when published)_ |
+
+**60s demo path:** open the live app → **Live mission control** (`/dashboard`) or **Guided crisis run** (`/demo`).
+
+## What this is (and is not)
+
+- **Is:** A **policy engine** for autonomous treasuries: bind a vault constitution, submit capital intents, get deterministic **ALLOW / REJECT**, run stress simulations, export evidence, and optionally log attestations on Mantle via `ExecutionLog`.
+- **Is not:** A lending product, invoice factoring, or credit-line app. Constitutional fields like *non-stable sleeve* caps are **risk limits**, not claims about tokenized real-world receivables.
+
+## Repository layout
+
+- `apps/web` — Next.js UI (landing, dashboard, constitution, simulations, guided demo).
+- `apps/api` — FastAPI Constitution Engine, PostgreSQL, optional Mantle execution logging.
+- `packages/contracts` — minimal on-chain audit surface (registry + execution log).
+- `infra` — Docker Compose for Postgres (and full stack).
 
 ## Run frontend
 
@@ -46,7 +60,7 @@ set TREASURY_EXECUTOR_PRIVATE_KEY=<private_key>
 set TREASURY_EXECUTOR_MNEMONIC="word1 word2 ... word12"
 ```
 
-**Railway:** set the same variable names under the API service (Root Directory `apps/api`). Add `DATABASE_URL`, `APP_ENV`, `CORS_ALLOW_ORIGINS` for production.
+**Railway:** set the same variable names on the API service (root directory `apps/api`). Add `DATABASE_URL`, `APP_ENV`, `CORS_ALLOW_ORIGINS` for production.
 
 ## Run Postgres + Redis (Docker)
 
@@ -85,17 +99,14 @@ See `SELF_HOST.md` for details.
 
 ## API quick checks
 
-Swagger docs:
-- `http://127.0.0.1:8000/docs`
+- Swagger: `http://127.0.0.1:8000/docs`
+- Health: `GET /health`
+- `POST /proposals/{proposal_id}/execution-record` (with chain env configured, can submit a real Mantle tx)
 
-Health:
-- `GET /health`
-- `POST /proposals/{proposal_id}/execution-record` (without `tx_hash` will send a real transaction when blockchain env vars are set)
+## Build history (internal)
 
-## Next build targets
-
-1. ~~Add SQLAlchemy migrations (Alembic) for schema versioning.~~ **Done:** `alembic upgrade head` runs on API startup; baseline revision `001_initial`.
-2. ~~Add Redis event feed for decision streaming.~~ **Done:** set `REDIS_URL` → decisions appended on evaluate; `GET /monitoring/decisions/recent`.
-3. ~~Add simulation charts with Recharts + Framer Motion transitions.~~ **Done:** `/simulations` — `ComposedChart` (survivability, compliance, drawdown axis) + motion KPIs / sections, `prefers-reduced-motion` respected.
-4. ~~Wire `packages/contracts` deployments to Mantle mainnet.~~ **Done:** Hardhat networks `mantle` / `mantleSepolia`; `npm run deploy:mantle` writes `deployments/mantle.json`; API env `EXECUTION_LOG_CONTRACT` + `MANTLE_CHAIN_ID` (default chain id in Python aligned to **5000**). See `packages/contracts/README.md`.
-5. ~~Add end-to-end tests for constitutional enforcement flow.~~ **Done:** `cd apps/api && python -m pytest tests/ -v` — SQLite + Alembic on startup; vault → proposal → evaluate (ALLOW/REJECT) → `execution-record` (manual `tx_hash` with chain disabled).
+1. ~~SQLAlchemy migrations (Alembic)~~ — **Done:** `alembic upgrade head` on API startup; baseline `001_initial`.
+2. ~~Redis event feed~~ — **Done:** `REDIS_URL` → decisions on evaluate; `GET /monitoring/decisions/recent`.
+3. ~~Simulation charts~~ — **Done:** `/simulations` with Recharts + motion, `prefers-reduced-motion` respected.
+4. ~~Contracts on Mantle~~ — **Done:** Hardhat `mantle` / `mantleSepolia`; `npm run deploy:mantle` → `deployments/mantle.json`; API env `EXECUTION_LOG_CONTRACT` + `MANTLE_CHAIN_ID=5000`. See `packages/contracts/README.md`.
+5. ~~Constitutional e2e tests~~ — **Done:** `cd apps/api && python -m pytest tests/ -v`.

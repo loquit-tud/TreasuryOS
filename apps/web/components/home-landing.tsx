@@ -24,22 +24,21 @@ export function HomeLanding() {
         <CapitalMapBackground />
         <div className="relative z-10 mx-auto flex min-h-[92vh] w-full max-w-5xl flex-col justify-center gap-10 px-6 py-16 md:flex-row md:items-center md:px-10 md:py-20">
           <div className="max-w-xl flex-1">
-            <p className="font-mono text-xs uppercase tracking-[0.28em] text-slate-500">TreasuryOS</p>
+            <p className="font-mono text-xs uppercase tracking-[0.28em] text-slate-500">TreasuryOS · Mantle</p>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.06] tracking-tight text-slate-50 md:text-5xl lg:text-6xl">
-              Rules for money that runs itself.
+              Constitutional risk for autonomous treasuries.
             </h1>
             <p className="mt-6 text-base leading-relaxed text-slate-300 md:text-lg">
-              <span className="font-medium text-slate-200">
-                TreasuryOS connects to a live API:{" "}
-              </span>
-              an autonomous treasury submits <strong className="text-slate-100">capital intents</strong> (what it wants
-              to do). Your <strong className="text-slate-100">vault constitution</strong> (risk limits written in advance)
-              says <strong className="text-cyan-300/95">ALLOW</strong> or <strong className="text-rose-300/95">BLOCK</strong>.
-              Under stress you run a crisis scenario and watch survivability react.
+              <strong className="text-slate-100">AI proposes capital actions.</strong> TreasuryOS stress-tests every
+              intent against <strong className="text-slate-100">treasury law</strong> (your vault constitution) before
+              anything executes. Unsafe paths get{" "}
+              <strong className="text-rose-300/95">BLOCK</strong>; compliant paths get{" "}
+              <strong className="text-cyan-300/95">ALLOW</strong> — with decisions you can{" "}
+              <strong className="text-slate-100">prove on-chain</strong> when the API is wired to Mantle.
             </p>
             <p className="mt-6 text-lg font-medium text-slate-300 md:text-xl">
-              AI pushes for return.{" "}
-              <span className="text-cyan-400/95">The constitution decides if the system survives it.</span>
+              Not a lending desk — a <span className="text-cyan-400/95">policy and enforcement layer</span> for treasury
+              survival.
             </p>
             <div className="mt-8 rounded-lg border border-white/[0.08] bg-[#050814]/85 px-4 py-4 font-mono text-[11px] leading-relaxed text-slate-400 md:text-xs">
               <p className="uppercase tracking-[0.2em] text-slate-500">What you do here (≈60s)</p>
@@ -78,8 +77,8 @@ export function HomeLanding() {
       {/* One-line thesis */}
       <section className="border-y border-white/[0.06] bg-[#070a1a]/90 py-16 text-center">
         <p className="mx-auto max-w-2xl px-6 font-mono text-sm leading-relaxed text-slate-400 md:text-base">
-          This is not a trading terminal. It is a <span className="text-slate-200">policy engine + live demo</span>: the
-          same checks a human committee would argue about, encoded and enforced before execution.
+          One story: <span className="text-slate-200">propose → constitution → allow or block → audit trail</span> — for
+          autonomous treasuries on Mantle, without diluting the product into a generic “AI finance” pitch.
         </p>
       </section>
 
@@ -104,7 +103,7 @@ export function HomeLanding() {
       <footer className="border-t border-white/[0.06] py-10 text-center text-xs text-slate-600">
         <span className="font-mono">TreasuryOS</span>
         <span className="mx-3 text-slate-700">·</span>
-        Governance layer for autonomous financial systems.
+        Constitutional risk layer on Mantle.
       </footer>
     </div>
   );
