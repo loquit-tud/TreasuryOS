@@ -1,0 +1,14 @@
+---
+description: Git push to GitHub — avoid 403 when GITHUB_TOKEN shadows gh keyring
+alwaysApply: true
+---
+
+# Git push + GitHub (Cursor / PowerShell)
+
+Before `git push`, if you see **403 Permission denied** on `https://github.com/...`:
+
+1. Run `gh auth status`. If **Active account** is **`GITHUB_TOKEN`**, that env PAT is often **read-only** or missing `repo` write — it overrides the keyring token.
+2. Fix session: `Remove-Item Env:GITHUB_TOKEN -ErrorAction SilentlyContinue`, then `gh auth switch --hostname github.com --user <github-user-with-repo-write>`.
+3. Run `gh auth setup-git` so Git uses the same credentials as `gh` for `github.com`.
+4. Use **HTTPS** `origin` (`https://github.com/OWNER/REPO.git`) when relying on `gh` helper; SSH needs a working `ssh-agent` + keys (Windows `ssh-agent` service must not be **Disabled** if you use service-based agent).
+5. Never paste tokens in chat.
