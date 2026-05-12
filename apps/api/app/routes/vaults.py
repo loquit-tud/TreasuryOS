@@ -19,6 +19,23 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/vaults", tags=["vaults"])
 
 
+def _sqlalchemy_diag(exc: SQLAlchemyError, *, extended: bool) -> str:
+    parts: list[str] = [exc.__class__.__name__]
+    orig = getattr(exc, "orig", None)
+    if orig is not None:
+        parts.append(str(orig).strip()[:420])
+    else:
+        msg = str(exc).strip()
+        if msg:
+            parts.append(msg[:420])
+    out = " — ".join(p for p in parts if p)
+    if extended:
+        raw = str(orig if orig is not None else exc).strip()
+        if len(raw) > 420:
+            out += f" | …{raw[420:920]}"
+    return out[:900]
+
+
 @router.post("", response_model=Vault)
 def create_vault(payload: VaultCreate, request: Request, db: Session = Depends(get_db)) -> Vault:
     vault_id = f"vault_{uuid4().hex[:10]}"
@@ -34,6 +51,7 @@ def create_vault(payload: VaultCreate, request: Request, db: Session = Depends(g
     )
     try:
         db.add(record)
+        db.flush()
         db.add(
             ConstitutionVersionRecord(
                 id=f"cv_{uuid4().hex[:10]}",
@@ -51,13 +69,12 @@ def create_vault(payload: VaultCreate, request: Request, db: Session = Depends(g
     except SQLAlchemyError as exc:
         db.rollback()
         logger.exception("create_vault failed (database)")
+        diag = _sqlalchemy_diag(exc, extended=get_settings().expose_db_error_detail)
         detail = (
-            "Database write failed (vault bootstrap). Check API logs and GET /health/db. "
-            "If stuck, set EXPOSE_DB_ERROR_DETAIL=true on the API service temporarily."
-        )
-        if get_settings().expose_db_error_detail:
-            orig = getattr(exc, "orig", None) or exc
-            detail = f"{detail} SQL: {str(orig)[:720]}"
+            "Database write failed (vault bootstrap). "
+            f"Postgres/SQLAlchemy: {diag}. "
+            "If this is opaque, set EXPOSE_DB_ERROR_DETAIL=true for a longer fragment."
+        )[:1200]
         raise HTTPException(status_code=503, detail=detail) from None
 
 
@@ -100,8 +117,10 @@ def update_constitution(
     except SQLAlchemyError as exc:
         db.rollback()
         logger.exception("update_constitution failed (database)")
-        detail = "Database write failed (constitution update). Check API logs and GET /health/db."
-        if get_settings().expose_db_error_detail:
-            orig = getattr(exc, "orig", None) or exc
-            detail = f"{detail} SQL: {str(orig)[:720]}"
+        diag = _sqlalchemy_diag(exc, extended=get_settings().expose_db_error_detail)
+        detail = (
+            "Database write failed (constitution update). "
+            f"Postgres/SQLAlchemy: {diag}. "
+            "Set EXPOSE_DB_ERROR_DETAIL=true for a longer fragment."
+        )[:1200]
         raise HTTPException(status_code=503, detail=detail) from None
